@@ -1,0 +1,82 @@
+name: qari24_7
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  get: ^4.6.6
+  dio: ^5.4.1
+  connectivity_plus: ^6.1.1
+  shared_preferences: ^2.2.2
+  flutter_svg: ^2.0.9
+  google_fonts: ^6.1.0
+  speech_to_text: ^7.4.0
+  permission_handler: ^11.3.1
+  image_picker: ^1.1.2
+  audioplayers: ^6.0.0
+  path_provider: ^2.1.3
+  record: ^6.2.0
+  web_socket_channel: ^3.0.1
+  url_launcher: ^6.3.2
+  firebase_core: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_native_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#06402B"
+  image: "assets/images/app_native.png"
+  android: true
+  ios: true
+  fullscreen: true
+  android_12:
+    color: "#06402B"
+    image: "assets/images/app_native.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter_24pt-Regular.ttf
+        - asset: assets/fonts/Inter_24pt-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Inter_24pt-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter_24pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter_24pt-Italic.ttf
+          style: italic
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-Regular.ttf
+        - asset: assets/fonts/PlayfairDisplay-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlayfairDisplay-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PlayfairDisplay-Italic.ttf
+          style: italic
