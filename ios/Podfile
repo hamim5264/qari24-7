@@ -1,0 +1,26 @@
+# Set platform to iOS 15.0 for modern Firebase / Swift Package Manager support
+platform :ios, '15.0'
+
+# CocoaPods analytics are sent to a server by default.
+# disable_cocoapods_analytics!
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.expand_path(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      # Forces deployment target to 15.0 for all pods dependencies to match firebase_core requirements
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+  end
+end
