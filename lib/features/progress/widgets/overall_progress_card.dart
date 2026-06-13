@@ -61,7 +61,7 @@ class OverallProgressCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '+12%',
+                      controller.growthPercentage.value,
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 13,

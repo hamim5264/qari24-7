@@ -19,6 +19,7 @@ import '../../recitation/screens/manage_downloads_screen.dart';
 import '../../subscription/controllers/subscription_controller.dart';
 import '../../subscription/screens/go_premium_screen.dart';
 import '../../subscription/screens/manage_subscription_screen.dart';
+import '../../subscription/screens/payment_history_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -55,6 +56,7 @@ class SettingsScreen extends StatelessWidget {
               () => ProfileHeaderCard(
                 name: controller.userName.value,
                 email: controller.email.value,
+                photoUrl: controller.photoUrl.value,
                 isPremium: controller.isPremium.value,
                 onManageTap: () => Get.to(() => const ProfileScreen()),
               ),
@@ -94,13 +96,7 @@ class SettingsScreen extends StatelessWidget {
                   leadingIcon: Icons.draw_outlined,
                   title: 'option_highlights'.tr,
                   onTap: () {
-                    if (!Get.isRegistered<RecitationController>()) {
-                      Get.put(RecitationController());
-                    }
-                    Get.bottomSheet(
-                      const AudioSettingsBottomSheet(),
-                      isScrollControlled: true,
-                    );
+                    _showHighlightColorSelector(context, controller);
                   },
                 ),
               ],
@@ -129,10 +125,12 @@ class SettingsScreen extends StatelessWidget {
                   leadingIcon: Icons.volume_up_outlined,
                   title: 'option_sound_settings'.tr,
                   onTap: () {
-                    Get.snackbar(
-                      'Sound Settings',
-                      'Adjust audio output levels loaded.',
-                      snackPosition: SnackPosition.BOTTOM,
+                    if (!Get.isRegistered<RecitationController>()) {
+                      Get.put(RecitationController());
+                    }
+                    Get.bottomSheet(
+                      const AudioSettingsBottomSheet(),
+                      isScrollControlled: true,
                     );
                   },
                 ),
@@ -200,6 +198,14 @@ class SettingsScreen extends StatelessWidget {
                     );
                   },
                 ),
+                SettingTile(
+                  leadingIcon: Icons.history_rounded,
+                  title: 'Payment History',
+                  onTap: () {
+                    Get.put(SubscriptionController());
+                    Get.to(() => const PaymentHistoryScreen());
+                  },
+                ),
               ],
             ),
 
@@ -214,6 +220,112 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHighlightColorSelector(BuildContext context, SettingsController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textThemeColor = isDark ? Colors.white : Colors.black87;
+    final cardBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade50;
+
+    final colorsList = [
+      {'name': 'Green', 'color': const Color(0xFF16A34A)},
+      {'name': 'Blue', 'color': const Color(0xFF2563EB)},
+      {'name': 'Orange', 'color': const Color(0xFFD97706)},
+      {'name': 'Purple', 'color': const Color(0xFF7C3AED)},
+    ];
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 48,
+                height: 4.5,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Select Highlight Color',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textThemeColor,
+                fontFamily: 'Inter',
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ...colorsList.map((item) {
+              final name = item['name'] as String;
+              final color = item['color'] as Color;
+              return Obx(() {
+                final isSelected = controller.highlightColorName.value == name;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? color.withValues(alpha: 0.15) 
+                        : cardBgColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected ? color : Colors.transparent,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ListTile(
+                    leading: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    title: Text(
+                      name,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: textThemeColor,
+                      ),
+                    ),
+                    trailing: isSelected 
+                        ? Icon(Icons.check_circle_rounded, color: color) 
+                        : null,
+                    onTap: () {
+                      controller.setHighlightColor(name);
+                      Get.back();
+                      Get.snackbar(
+                        'Highlight Color',
+                        '$name color selected for recitation highlighting.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: AppColors.primary,
+                        colorText: Colors.white,
+                      );
+                    },
+                  ),
+                );
+              });
+            }),
           ],
         ),
       ),

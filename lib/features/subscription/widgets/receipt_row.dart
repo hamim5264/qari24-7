@@ -30,6 +30,7 @@ class ReceiptRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -40,23 +41,30 @@ class ReceiptRow extends StatelessWidget {
               color: labelColor,
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (trailingWidget != null) ...[
-                trailingWidget!,
-                const SizedBox(width: 6),
-              ],
-              Text(
-                value,
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 14,
-                  fontWeight: isBoldValue ? FontWeight.bold : FontWeight.w600,
-                  color: valueColor ?? defaultValColor,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (trailingWidget != null) ...[
+                  trailingWidget!,
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 14,
+                      fontWeight: isBoldValue ? FontWeight.bold : FontWeight.w600,
+                      color: valueColor ?? defaultValColor,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

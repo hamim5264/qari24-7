@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../settings/controllers/settings_controller.dart';
 import '../controllers/recitation_controller.dart';
 import '../screens/manage_downloads_screen.dart';
 import '../screens/saved_screen.dart';
@@ -11,6 +12,7 @@ class AudioSettingsBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<RecitationController>();
+    final settingsController = Get.find<SettingsController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final sheetBg = isDark ? const Color(0xFF121212) : Colors.white;
@@ -27,23 +29,37 @@ class AudioSettingsBottomSheet extends StatelessWidget {
       ),
       child: Column(
         children: [
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.only(left: 20, right: 8, top: 4, bottom: 4),
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                const SizedBox(width: 40),
-                Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10),
+                Text(
+                  'Playback Settings',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textTitle,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Get.back(),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Get.back(),
+                  ),
                 ),
               ],
             ),
@@ -56,72 +72,66 @@ class AudioSettingsBottomSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0C2B1D), Color(0xFF061810)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  Obx(() {
+                    if (settingsController.isPremium.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0C2B1D), Color(0xFF061810)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF1E5D3E).withValues(alpha: 0.3),
+                          width: 1,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF1E5D3E).withValues(alpha: 0.3),
-                        width: 1,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFE2B93C),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.workspace_premium,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Unlock Premium Features',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Get unlimited access to enhance your Quran reading experience',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFE2B93C),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.workspace_premium,
-                            color: Colors.white,
-                            size: 26,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Unlock Premium Features',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Get unlimited access to enhance your Quran reading experience',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 24),
 
-                  Text(
-                    'PLAYBACK SETTINGS',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                      color: textGrey,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
 
                   Text(
                     'Select Range',

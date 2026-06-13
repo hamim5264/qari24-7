@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../controllers/subscription_controller.dart';
 import '../widgets/plan_card.dart';
-import 'payment_method_screen.dart';
+import 'payment_success_screen.dart';
+import 'payment_failure_screen.dart';
 
 class SelectPlanScreen extends StatelessWidget {
   const SelectPlanScreen({super.key});
@@ -12,7 +13,9 @@ class SelectPlanScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final SubscriptionController controller =
-        Get.find<SubscriptionController>();
+        Get.isRegistered<SubscriptionController>()
+            ? Get.find<SubscriptionController>()
+            : Get.put(SubscriptionController());
 
     final titleColor = isDark ? Colors.white : AppColors.primary;
     final bodyColor = isDark ? Colors.grey.shade400 : Colors.grey.shade700;
@@ -142,7 +145,7 @@ class SelectPlanScreen extends StatelessWidget {
                         children: [
                           PlanCard(
                             title: 'yearly_plan_label'.tr,
-                            price: 'yearly_plan_price'.tr,
+                            price: controller.yearlyPriceText,
                             subtitle: 'yearly_plan_save'.tr,
                             badgeText: 'MOST POPULAR',
                             isSelected:
@@ -152,7 +155,7 @@ class SelectPlanScreen extends StatelessWidget {
                           const SizedBox(height: 16),
                           PlanCard(
                             title: 'monthly_plan'.tr,
-                            price: '\$20.00/month',
+                            price: controller.monthlyPriceText,
                             isSelected:
                                 controller.selectedPlan.value == 'Monthly',
                             onTap: () => controller.changePlan('Monthly'),
@@ -189,8 +192,47 @@ class SelectPlanScreen extends StatelessWidget {
                     elevation: 2,
                     shadowColor: AppColors.primary.withValues(alpha: 0.4),
                   ),
-                  onPressed: () {
-                    Get.to(() => const PaymentMethodScreen());
+                  onPressed: () async {
+                    Get.dialog(
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                          margin: const EdgeInsets.symmetric(horizontal: 40),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF161616),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.grey.shade900, width: 1.5),
+                          ),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(
+                                color: AppColors.secondary,
+                              ),
+                              SizedBox(height: 20),
+                              Text(
+                                'Connecting to secure gateway...',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  decoration: TextDecoration.none,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      barrierDismissible: false,
+                    );
+                    final success = await controller.processPayment(simulateFailure: false);
+                    Get.back(); // dismiss dialog
+                    if (success) {
+                      Get.to(() => const PaymentSuccessScreen());
+                    } else {
+                      Get.to(() => const PaymentFailureScreen());
+                    }
                   },
                   child: Text(
                     'purchase_now'.tr,

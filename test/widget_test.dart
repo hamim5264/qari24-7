@@ -1,18 +1,29 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qari24_7/app.dart';
+import 'package:qari24_7/features/auth/models/user_model.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const QariApp());
+  group('UserModel Tests', () {
+    test('should serialize to and from JSON correctly', () {
+      final json = {
+        'id': 1,
+        'username': 'testuser',
+        'email': 'testuser@example.com',
+        'photo': 'https://example.com/photo.jpg',
+      };
 
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      final user = UserModel.fromJson(json);
 
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      expect(user.id, 1);
+      expect(user.username, 'testuser');
+      expect(user.email, 'testuser@example.com');
+      expect(user.photo, 'https://example.com/photo.jpg');
 
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      final serialized = user.toJson();
+      expect(serialized['id'], 1);
+      expect(serialized['username'], 'testuser');
+      expect(serialized['email'], 'testuser@example.com');
+      expect(serialized['photo'], 'https://example.com/photo.jpg');
+    });
   });
 }
+

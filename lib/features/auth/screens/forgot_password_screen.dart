@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
-import 'check_email_screen.dart';
 import 'login_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -96,16 +95,19 @@ class ForgotPasswordScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              CustomButton(
-                text: 'continue_btn'.tr,
-                onPressed: () {
-                  if (controller.emailController.text.isEmpty) {
-                    Get.snackbar('Error', 'Please enter your email address');
-                    return;
-                  }
-                  controller.startResendTimer();
-                  Get.to(() => const CheckEmailScreen());
-                },
+              Obx(
+                () => controller.isLoading.value
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                      )
+                    : CustomButton(
+                        text: 'continue_btn'.tr,
+                        onPressed: controller.sendForgotPasswordEmail,
+                      ),
               ),
               const SizedBox(height: 24),
             ],

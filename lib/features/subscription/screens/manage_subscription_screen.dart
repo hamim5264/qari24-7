@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../settings/controllers/settings_controller.dart';
 import '../controllers/subscription_controller.dart';
 import '../widgets/plan_card.dart';
+import '../screens/go_premium_screen.dart';
 
 class ManageSubscriptionScreen extends StatelessWidget {
   const ManageSubscriptionScreen({super.key});
@@ -11,20 +12,29 @@ class ManageSubscriptionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final SubscriptionController subController = Get.find<SubscriptionController>();
-    final SettingsController settingsController = Get.find<SettingsController>();
+    final SubscriptionController subController =
+        Get.find<SubscriptionController>();
+    final SettingsController settingsController =
+        Get.find<SettingsController>();
 
     final titleColor = isDark ? Colors.white : AppColors.primary;
-    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
+    final surfaceColor = isDark
+        ? AppColors.surfaceDark
+        : AppColors.surfaceLight;
     final borderColor = isDark ? Colors.grey.shade900 : Colors.grey.shade200;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
           onPressed: () => Get.back(),
         ),
         title: Text(
@@ -88,18 +98,27 @@ class ManageSubscriptionScreen extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: isPremium ? AppColors.success.withValues(alpha: 0.2) : Colors.white12,
+                              color: isPremium
+                                  ? AppColors.success.withValues(alpha: 0.2)
+                                  : Colors.white12,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              isPremium ? 'premium_active'.tr.toUpperCase() : 'FREE',
+                              isPremium
+                                  ? 'premium_active'.tr.toUpperCase()
+                                  : 'FREE',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
-                                color: isPremium ? Colors.green.shade300 : Colors.white,
+                                color: isPremium
+                                    ? Colors.green.shade300
+                                    : Colors.white,
                               ),
                             ),
                           ),
@@ -127,7 +146,11 @@ class ManageSubscriptionScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Divider(height: 1, color: Colors.white12, thickness: 0.5),
+                      const Divider(
+                        height: 1,
+                        color: Colors.white12,
+                        thickness: 0.5,
+                      ),
                       const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -141,7 +164,7 @@ class ManageSubscriptionScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            planPrice,
+                            isPremium ? planPrice : '\$0.00',
                             style: const TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 15,
@@ -167,11 +190,13 @@ class ManageSubscriptionScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   PlanCard(
                     title: 'yearly_plan_label'.tr,
-                    price: 'yearly_plan_price'.tr,
-                    subtitle: currentPlan.contains('Yearly') ? 'current_plan'.tr : 'upgrade_plan'.tr,
+                    price: subController.yearlyPriceText,
+                    subtitle: currentPlan.contains('Yearly')
+                        ? 'current_plan'.tr
+                        : 'upgrade_plan'.tr,
                     isSelected: currentPlan.contains('Yearly'),
                     onTap: () {
                       if (!currentPlan.contains('Yearly')) {
@@ -182,8 +207,10 @@ class ManageSubscriptionScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   PlanCard(
                     title: 'monthly_plan'.tr,
-                    price: '\$20.00/month',
-                    subtitle: currentPlan.contains('Monthly') ? 'current_plan'.tr : null,
+                    price: subController.monthlyPriceText,
+                    subtitle: currentPlan.contains('Monthly')
+                        ? 'current_plan'.tr
+                        : null,
                     isSelected: currentPlan.contains('Monthly'),
                     onTap: () {
                       if (!currentPlan.contains('Monthly')) {
@@ -191,9 +218,9 @@ class ManageSubscriptionScreen extends StatelessWidget {
                       }
                     },
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -226,7 +253,9 @@ class ManageSubscriptionScreen extends StatelessWidget {
                                   fontFamily: 'Inter',
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                                  color: isDark
+                                      ? AppColors.textPrimaryDark
+                                      : AppColors.textPrimaryLight,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -235,7 +264,9 @@ class ManageSubscriptionScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 11,
-                                  color: isDark ? Colors.grey.shade500 : Colors.grey.shade600,
+                                  color: isDark
+                                      ? Colors.grey.shade500
+                                      : Colors.grey.shade600,
                                 ),
                               ),
                             ],
@@ -245,26 +276,32 @@ class ManageSubscriptionScreen extends StatelessWidget {
                           value: subController.notifyReminder.value,
                           activeThumbColor: AppColors.primary,
                           onChanged: (val) {
-                            subController.notifyReminder.value = val;
+                            subController.toggleAutoRenewal(val);
                           },
                         ),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 48),
-                  
+
                   Center(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         foregroundColor: AppColors.error,
                         elevation: 0,
-                        side: const BorderSide(color: AppColors.error, width: 1.5),
+                        side: const BorderSide(
+                          color: AppColors.error,
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
                       ),
                       onPressed: () => _showCancelDialog(context),
                       icon: const Icon(Icons.cancel_outlined, size: 20),
@@ -284,7 +321,11 @@ class ManageSubscriptionScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 40),
-                        Icon(Icons.star_border_rounded, size: 64, color: Colors.grey.shade400),
+                        Icon(
+                          Icons.star_border_rounded,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No Active Subscription',
@@ -302,9 +343,12 @@ class ManageSubscriptionScreen extends StatelessWidget {
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                             ),
-                            onPressed: () => Get.back(),
+                            onPressed: () => Get.to(() => const GoPremiumScreen()),
                             child: const Text(
                               'Upgrade Now',
                               style: TextStyle(
@@ -329,8 +373,11 @@ class ManageSubscriptionScreen extends StatelessWidget {
   }
 
   void _showChangePlanConfirmation(BuildContext context, String newPlanType) {
-    final SettingsController settingsController = Get.find<SettingsController>();
-    
+    final SettingsController settingsController =
+        Get.find<SettingsController>();
+    final SubscriptionController subController =
+        Get.find<SubscriptionController>();
+
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -349,9 +396,16 @@ class ManageSubscriptionScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              settingsController.subscriptionStatus.value = newPlanType == 'Yearly' ? 'Premium Yearly' : 'Premium Monthly';
-              settingsController.planPrice.value = newPlanType == 'Yearly' ? '\$200/year' : '\$20.00/month';
-              settingsController.renewalDate.value = newPlanType == 'Yearly' ? 'May 24, 2027' : 'June 24, 2026';
+              settingsController.subscriptionStatus.value =
+                  newPlanType == 'Yearly'
+                  ? 'Premium Yearly'
+                  : 'Premium Monthly';
+              settingsController.planPrice.value = newPlanType == 'Yearly'
+                  ? subController.yearlyPriceText
+                  : subController.monthlyPriceText;
+              settingsController.renewalDate.value = newPlanType == 'Yearly'
+                  ? 'May 24, 2027'
+                  : 'June 24, 2026';
               Get.back();
               Get.snackbar(
                 'Plan Updated',
@@ -361,7 +415,13 @@ class ManageSubscriptionScreen extends StatelessWidget {
                 colorText: Colors.white,
               );
             },
-            child: const Text('Confirm', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Confirm',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -369,8 +429,9 @@ class ManageSubscriptionScreen extends StatelessWidget {
   }
 
   void _showCancelDialog(BuildContext context) {
-    final SubscriptionController subController = Get.find<SubscriptionController>();
-    
+    final SubscriptionController subController =
+        Get.find<SubscriptionController>();
+
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -390,11 +451,7 @@ class ManageSubscriptionScreen extends StatelessWidget {
         ),
         content: const Text(
           'Are you sure you want to cancel your Premium subscription? You will lose access to all premium features including mistake detection, verse peeking, and mistake playback at the end of the current billing cycle.',
-          style: TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            height: 1.4,
-          ),
+          style: TextStyle(fontFamily: 'Inter', fontSize: 14, height: 1.4),
         ),
         actions: [
           TextButton(
@@ -412,12 +469,14 @@ class ManageSubscriptionScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
-              
+
               subController.cancelPremiumSubscription();
             },
             child: const Text(

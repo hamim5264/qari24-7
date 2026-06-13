@@ -184,8 +184,8 @@ class ActivityChartCard extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOutBack,
-              height: heightPercent * 120,
+              curve: Curves.easeOutCubic,
+              height: (heightPercent * 120).clamp(0.0, double.infinity),
               width: 14,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(

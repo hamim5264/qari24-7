@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
 import '../controllers/settings_controller.dart';
 import 'add_feature_screen.dart';
+import 'info_screens.dart';
 
 import '../../subscription/controllers/subscription_controller.dart';
 import '../../subscription/screens/go_premium_screen.dart';
 import '../../subscription/screens/manage_subscription_screen.dart';
+import '../../auth/repositories/auth_repository.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -88,6 +92,12 @@ class ProfileScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Get.back(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_rounded),
+            onPressed: () => _showEditProfileSheet(context, controller, isDark),
+          ),
+        ],
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -95,42 +105,56 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              child: Text(
-                controller.userName.value.isNotEmpty
-                    ? controller.userName.value[0]
-                    : 'U',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+            Obx(() {
+              final authRepo = Get.find<AuthRepository>();
+              final user = authRepo.currentUser.value;
+              final photoUrl = user?.photo;
+              return CircleAvatar(
+                radius: 40,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                backgroundImage: photoUrl != null && photoUrl.isNotEmpty
+                    ? CachedNetworkImageProvider(photoUrl)
+                    : null,
+                child: photoUrl == null || photoUrl.isEmpty
+                    ? Text(
+                        controller.userName.value.isNotEmpty
+                            ? controller.userName.value[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          fontFamily: 'Inter',
+                        ),
+                      )
+                    : null,
+              );
+            }),
+            const SizedBox(height: 16),
+            Obx(
+              () => Text(
+                controller.userName.value,
+                style: TextStyle(
                   fontFamily: 'Inter',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              controller.userName.value,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textPrimaryLight,
-              ),
-            ),
             const SizedBox(height: 4),
-            Text(
-              controller.email.value,
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
+            Obx(
+              () => Text(
+                controller.email.value,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -264,14 +288,33 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             GestureDetector(
-              onTap: () {
-                Get.snackbar(
-                  'Restore',
-                  'Purchases restored successfully.',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: AppColors.primary,
-                  colorText: Colors.white,
+              onTap: () async {
+                Get.dialog(
+                  const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                  barrierDismissible: false,
                 );
+                final subController = Get.isRegistered<SubscriptionController>()
+                    ? Get.find<SubscriptionController>()
+                    : Get.put(SubscriptionController());
+                final success = await subController.restoreSubscription();
+                Get.back(); // Dismiss loading
+                if (success) {
+                  Get.snackbar(
+                    'Restore',
+                    'Purchases restored successfully.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: AppColors.primary,
+                    colorText: Colors.white,
+                  );
+                } else {
+                  Get.snackbar(
+                    'Restore Failed',
+                    'No active subscriptions found to restore.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red.shade900,
+                    colorText: Colors.white,
+                  );
+                }
               },
               child: Text(
                 'restore_purchases'.tr,
@@ -300,18 +343,15 @@ class ProfileScreen extends StatelessWidget {
                       actions: [
                         TextButton(
                           onPressed: () => Get.back(),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
                           child: const Text('Cancel'),
                         ),
                         TextButton(
                           onPressed: () {
                             Get.back();
-                            Get.snackbar(
-                              'Logout',
-                              'Logged out successfully.',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: AppColors.primary,
-                              colorText: Colors.white,
-                            );
+                            controller.logout();
                           },
                           child: const Text(
                             'Log Out',
@@ -356,13 +396,7 @@ class ProfileScreen extends StatelessWidget {
                   buildOptionRow(
                     icon: Icons.info_outline_rounded,
                     labelKey: 'about_app',
-                    onTap: () {
-                      Get.snackbar(
-                        'About QARI 24/7',
-                        'QARI 24/7 is an AI-powered Quran companion.',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                    onTap: () => Get.to(() => const AboutAppScreen()),
                   ),
                   const Divider(height: 1, thickness: 0.5),
                   buildOptionRow(
@@ -374,23 +408,92 @@ class ProfileScreen extends StatelessWidget {
                   buildOptionRow(
                     icon: Icons.help_outline_rounded,
                     labelKey: 'help_center',
-                    onTap: () {
-                      Get.snackbar(
-                        'Help Center',
-                        'Help and support guides are coming soon.',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                    onTap: () => Get.to(() => const HelpCenterScreen()),
                   ),
                   const Divider(height: 1, thickness: 0.5),
                   buildOptionRow(
                     icon: Icons.star_outline_rounded,
                     labelKey: 'rate_app',
                     onTap: () {
-                      Get.snackbar(
-                        'Rate App',
-                        'Thank you for your rating request!',
-                        snackPosition: SnackPosition.BOTTOM,
+                      int selectedStars = 5;
+                      final reviewController = TextEditingController();
+                      Get.dialog(
+                        StatefulBuilder(
+                          builder: (context, setState) {
+                            return AlertDialog(
+                              title: const Text('Rate QARI 24/7'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: List.generate(5, (index) {
+                                      final starNum = index + 1;
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            selectedStars = starNum;
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4.0,
+                                          ),
+                                          child: Icon(
+                                            starNum <= selectedStars
+                                                ? Icons.star_rounded
+                                                : Icons.star_border_rounded,
+                                            color: const Color(0xFFEFBF04),
+                                            size: 36,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: reviewController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Review (Optional)',
+                                      hintText: 'Tell us what you think...',
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    maxLines: 2,
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Get.back();
+                                    await controller.submitAppRating(
+                                      rating: selectedStars,
+                                      review: reviewController.text.trim(),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Submit',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       );
                     },
                   ),
@@ -398,54 +501,67 @@ class ProfileScreen extends StatelessWidget {
                   buildOptionRow(
                     icon: Icons.article_outlined,
                     labelKey: 'terms_service',
-                    onTap: () {
-                      Get.snackbar(
-                        'Terms of Service',
-                        'Terms of service documents loaded.',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                    onTap: () => Get.to(() => const TermsOfServiceScreen()),
                   ),
                   const Divider(height: 1, thickness: 0.5),
                   buildOptionRow(
                     icon: Icons.privacy_tip_outlined,
                     labelKey: 'privacy_policy',
-                    onTap: () {
-                      Get.snackbar(
-                        'Privacy Policy',
-                        'Privacy policy documents loaded.',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
-                    },
+                    onTap: () => Get.to(() => const PrivacyPolicyScreen()),
                   ),
                   const Divider(height: 1, thickness: 0.5),
                   buildOptionRow(
                     icon: Icons.delete_outline_rounded,
                     labelKey: 'delete_account',
                     onTap: () {
+                      final passwordController = TextEditingController();
                       Get.dialog(
                         AlertDialog(
                           title: const Text(
                             'Delete Account',
                             style: TextStyle(color: Colors.red),
                           ),
-                          content: const Text(
-                            'Warning: This action is irreversible. All of your progress and settings will be permanently lost.',
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Warning: This action is irreversible. All of your progress and settings will be permanently lost.',
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: passwordController,
+                                obscureText: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Confirm Password',
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.red),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Get.back(),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
                               child: const Text('Cancel'),
                             ),
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
+                                final pw = passwordController.text.trim();
+                                if (pw.isEmpty) {
+                                  Get.snackbar(
+                                    'Validation',
+                                    'Password is required.',
+                                  );
+                                  return;
+                                }
                                 Get.back();
-                                Get.snackbar(
-                                  'Account Deleted',
-                                  'Your account deletion request has been submitted.',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                  backgroundColor: Colors.red.shade900,
-                                  colorText: Colors.white,
+                                await controller.deleteUserAccount(
+                                  password: pw,
                                 );
                               },
                               child: const Text(
@@ -466,6 +582,259 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showEditProfileSheet(
+    BuildContext context,
+    SettingsController controller,
+    bool isDark,
+  ) {
+    final usernameController = TextEditingController(
+      text: controller.userName.value,
+    );
+    controller.newProfileImage.value = null;
+
+    Get.bottomSheet(
+      SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Get.back(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: Stack(
+                    children: [
+                      Obx(() {
+                        final authRepo = Get.find<AuthRepository>();
+                        final user = authRepo.currentUser.value;
+                        final photoUrl = user?.photo;
+                        final localImage = controller.newProfileImage.value;
+
+                        return Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              width: 3,
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: localImage != null
+                                ? Image.file(localImage, fit: BoxFit.cover)
+                                : (photoUrl != null && photoUrl.isNotEmpty
+                                      ? CachedNetworkImage(
+                                          imageUrl: photoUrl,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(
+                                                Icons.person,
+                                                size: 50,
+                                              ),
+                                        )
+                                      : Container(
+                                          color: Colors.grey.shade200,
+                                          child: const Icon(
+                                            Icons.person,
+                                            size: 50,
+                                          ),
+                                        )),
+                          ),
+                        );
+                      }),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () => _showPhotoSourceSheet(
+                            context,
+                            controller,
+                            isDark,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: AppColors.secondary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: usernameController,
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    labelStyle: TextStyle(
+                      color: isDark ? Colors.grey : Colors.grey.shade700,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade300,
+                      ),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Obx(() {
+                  final isUpdating = controller.isUpdatingProfile.value;
+                  return isUpdating
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                          ),
+                        )
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final name = usernameController.text.trim();
+                            if (name.isEmpty) {
+                              Get.snackbar(
+                                'Validation',
+                                'Username cannot be empty',
+                              );
+                              return;
+                            }
+                            final success = await controller.updateProfile(
+                              username: name,
+                              photo: controller.newProfileImage.value,
+                            );
+                            if (success) {
+                              Get.back();
+                              Get.snackbar(
+                                'Success',
+                                'Profile updated successfully!',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: const Color(0xFF06402B),
+                                colorText: Colors.white,
+                              );
+                            }
+                          },
+                          child: const Text('Save Changes'),
+                        );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  void _showPhotoSourceSheet(
+    BuildContext context,
+    SettingsController controller,
+    bool isDark,
+  ) {
+    Get.bottomSheet(
+      SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_camera,
+                  color: AppColors.primary,
+                ),
+                title: const Text('Take Photo'),
+                onTap: () => controller.pickNewProfileImage(ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: AppColors.primary,
+                ),
+                title: const Text('Choose from Gallery'),
+                onTap: () =>
+                    controller.pickNewProfileImage(ImageSource.gallery),
+              ),
+              Obx(() {
+                if (controller.newProfileImage.value != null) {
+                  return ListTile(
+                    leading: const Icon(Icons.delete, color: AppColors.error),
+                    title: const Text('Remove Selected Photo'),
+                    onTap: () {
+                      controller.removeNewProfileImage();
+                      Get.back();
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: Colors.transparent,
     );
   }
 }

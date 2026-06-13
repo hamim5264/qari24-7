@@ -57,6 +57,8 @@ class LeaderboardScreen extends StatelessWidget {
       body: Obx(() {
         final rankings = controller.otherRankings;
         final achievements = controller.lockedAchievements;
+        final isCommunityTab = controller.leaderboardTab.value == 'community';
+        final hasCommunity = controller.hasCommunityLeaderboard.value;
 
         return ListView(
           physics: const BouncingScrollPhysics(),
@@ -96,29 +98,92 @@ class LeaderboardScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            const LeaderboardPodium(),
-
-            const SizedBox(height: 24),
-
-            Text(
-              'other_rankings'.tr.toUpperCase(),
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondaryLight,
+            if (isCommunityTab && !hasCommunity)
+              Container(
+                padding: const EdgeInsets.all(32.0),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF161616) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.group_outlined,
+                      size: 64,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Community Joined Yet',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Join a community from the Community screen to compare your progress with other members.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () {
+                        Get.back();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Go Back',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              const LeaderboardPodium(),
+              const SizedBox(height: 24),
+              Text(
+                'other_rankings'.tr.toUpperCase(),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            Column(
-              children: rankings
-                  .map((row) => _buildRankingRow(row, isDark))
-                  .toList(),
-            ),
+              const SizedBox(height: 12),
+              Column(
+                children: rankings
+                    .map((row) => _buildRankingRow(row, isDark))
+                    .toList(),
+              ),
+            ],
 
             const SizedBox(height: 24),
 

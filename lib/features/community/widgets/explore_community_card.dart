@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/community_controller.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../settings/controllers/settings_controller.dart';
+import '../../subscription/screens/select_plan_screen.dart';
 
 class ExploreCommunityCard extends StatelessWidget {
   final CommunityModel community;
@@ -48,8 +50,8 @@ class ExploreCommunityCard extends StatelessWidget {
                     height: 50,
                     fit: BoxFit.cover,
                   )
-                : Image.network(
-                    community.photoUrl,
+                : Obx(() => Image.network(
+                    community.photoUrl.value,
                     width: 50,
                     height: 50,
                     fit: BoxFit.cover,
@@ -59,7 +61,7 @@ class ExploreCommunityCard extends StatelessWidget {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       child: const Icon(Icons.group, color: AppColors.primary),
                     ),
-                  ),
+                  )),
           ),
           const SizedBox(width: 16),
 
@@ -67,15 +69,15 @@ class ExploreCommunityCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  community.name,
+                Obx(() => Text(
+                  community.name.value,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: titleColor,
                   ),
-                ),
+                )),
                 const SizedBox(height: 4),
                 Text(
                   '${_formatMembers(community.memberCount.value)} members',
@@ -107,7 +109,21 @@ class ExploreCommunityCard extends StatelessWidget {
 
   Widget _buildJoinButton(BuildContext context) {
     return GestureDetector(
-      onTap: () => controller.joinCommunity(community),
+      onTap: () {
+        final settingsController = Get.find<SettingsController>();
+        if (!settingsController.isPremium.value) {
+          Get.to(() => const SelectPlanScreen());
+          Get.snackbar(
+            'Premium Required',
+            'You must be a premium user to join a community.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange.shade900,
+            colorText: Colors.white,
+          );
+          return;
+        }
+        controller.joinCommunity(community);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
@@ -156,7 +172,7 @@ class ExploreCommunityCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Are you sure you want to cancel your join request to ${community.name}?',
+                  'Are you sure you want to cancel your join request to ${community.name.value}?',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Inter',

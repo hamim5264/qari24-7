@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../auth/repositories/auth_repository.dart';
 import '../controllers/library_controller.dart';
 import '../models/book_model.dart';
 import '../../../core/constants/app_colors.dart';
-import 'qari_reader_screen.dart';
+import 'pdf_reader_screen.dart';
+import 'audio_player_screen.dart';
+import '../../subscription/screens/go_premium_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final LibraryController controller = Get.put(LibraryController());
+    final controller = Get.isRegistered<LibraryController>()
+        ? Get.find<LibraryController>()
+        : Get.put(LibraryController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authRepository = Get.find<AuthRepository>();
 
     final bgColor = isDark
         ? AppColors.backgroundDark
@@ -45,34 +52,57 @@ class LibraryScreen extends StatelessWidget {
                       letterSpacing: -0.5,
                     ),
                   ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.4),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                  Obx(() {
+                    final user = authRepository.currentUser.value;
+                    final photoUrl = user?.photo;
+                    final username = user?.username ?? '';
+
+                    String initials = 'U';
+                    if (username.isNotEmpty) {
+                      final parts = username.trim().split(RegExp(r'\s+'));
+                      if (parts.length > 1) {
+                        initials = (parts[0][0] + parts[1][0]).toUpperCase();
+                      } else if (username.length > 1) {
+                        initials = username.substring(0, 2).toUpperCase();
+                      } else {
+                        initials = username[0].toUpperCase();
+                      }
+                    }
+
+                    return Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.4),
+                          width: 2,
                         ),
-                      ],
-                    ),
-                    child: const ClipRRect(
-                      borderRadius: BorderRadius.all(Radius.circular(22)),
-                      child: Image(
-                        image: NetworkImage(
-                          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150&auto=format&fit=crop',
-                        ),
-                        fit: BoxFit.cover,
-                        errorBuilder: _fallbackAvatar,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
+                      child: ClipOval(
+                        child: photoUrl != null && photoUrl.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: photoUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    _buildInitialsPlaceholder(initials),
+                              )
+                            : _buildInitialsPlaceholder(initials),
+                      ),
+                    );
+                  }),
                 ],
               ),
               const SizedBox(height: 24),
@@ -141,7 +171,7 @@ class LibraryScreen extends StatelessWidget {
                     );
                   }
 
-                  if (controller.filteredBooks.isEmpty) {
+                  if (controller.filteredItems.isEmpty) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -153,7 +183,7 @@ class LibraryScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No books found',
+                            'No items found',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 16,
@@ -176,12 +206,17 @@ class LibraryScreen extends StatelessWidget {
                           crossAxisCount: 2,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 20,
-                          childAspectRatio: 0.58,
+                          childAspectRatio: 0.56,
                         ),
-                    itemCount: controller.filteredBooks.length,
+                    itemCount: controller.filteredItems.length,
                     itemBuilder: (context, index) {
-                      final book = controller.filteredBooks[index];
-                      return _buildBookCard(context, book, controller, isDark);
+                      final item = controller.filteredItems[index];
+                      return _buildLibraryCard(
+                        context,
+                        item,
+                        controller,
+                        isDark,
+                      );
                     },
                   );
                 }),
@@ -194,7 +229,7 @@ class LibraryScreen extends StatelessWidget {
   }
 
   Widget _buildCategorySelector(LibraryController controller, bool isDark) {
-    final categories = ['All', 'Quran', 'Tafseer', 'Hadith'];
+    final categories = ['All', 'PDF', 'Audio', 'Book'];
     return SizedBox(
       height: 38,
       child: ListView.builder(
@@ -203,13 +238,7 @@ class LibraryScreen extends StatelessWidget {
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final cat = categories[index];
-          final localizedLabel = cat == 'All'
-              ? 'category_all'.tr
-              : cat == 'Quran'
-              ? 'category_quran'.tr
-              : cat == 'Tafseer'
-              ? 'category_tafseer'.tr
-              : 'category_hadith'.tr;
+          final localizedLabel = cat == 'All' ? 'category_all'.tr : cat;
 
           return Obx(() {
             final isSelected = controller.selectedCategory.value == cat;
@@ -256,9 +285,9 @@ class LibraryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBookCard(
+  Widget _buildLibraryCard(
     BuildContext context,
-    BookModel book,
+    LibraryItemModel item,
     LibraryController controller,
     bool isDark,
   ) {
@@ -281,6 +310,7 @@ class LibraryScreen extends StatelessWidget {
           Expanded(
             child: Stack(
               children: [
+                // Cover Image
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -295,16 +325,39 @@ class LibraryScreen extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image(
-                      image: NetworkImage(book.coverUrl),
-                      fit: BoxFit.cover,
-                      errorBuilder: (c, e, s) => _buildCoverPlaceholder(book),
-                    ),
+                    child: item.coverUrl.isNotEmpty
+                        ? Image(
+                            image: NetworkImage(item.coverUrl),
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) =>
+                                _buildCoverPlaceholder(item),
+                          )
+                        : _buildCoverPlaceholder(item),
                   ),
                 ),
 
+                // Premium Locked Badge
+                if (item.locked)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_outline,
+                        color: Colors.amber,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+
+                // Download Progress
                 Obx(() {
-                  final progress = book.downloadProgress.value;
+                  final progress = item.downloadProgress.value;
                   if (progress <= 0.0) return const SizedBox.shrink();
 
                   return Container(
@@ -342,12 +395,12 @@ class LibraryScreen extends StatelessWidget {
           const SizedBox(height: 10),
 
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            padding: const EdgeInsets.fromLTRB(12.0, 0, 12.0, 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  book.title,
+                  item.title,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 12.5,
@@ -355,7 +408,18 @@ class LibraryScreen extends StatelessWidget {
                     color: textThemeColor,
                     height: 1.35,
                   ),
-                  maxLines: 3,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.description,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 11,
+                    color: subtitleColor,
+                  ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 10),
@@ -363,60 +427,82 @@ class LibraryScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Main Action (Play / Read)
                     GestureDetector(
                       onTap: () async {
-                        if (book.isDownloaded.value) {
-                          Get.to(() => QariReaderScreen(book: book));
+                        if (item.locked) {
+                          Get.to(() => const GoPremiumScreen());
+                          Get.snackbar(
+                            'Premium Content Locked',
+                            item.message ??
+                                'Please subscribe to unlock this item.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.amber.shade900,
+                            colorText: Colors.white,
+                          );
                         } else {
-                          await controller.downloadBook(book);
+                          final path = await controller.getLocalPath(item);
+                          if (item.contentType == 'audio') {
+                            Get.to(
+                              () => AudioPlayerScreen(
+                                item: item,
+                                localPath: path,
+                              ),
+                            );
+                          } else {
+                            Get.to(
+                              () =>
+                                  PdfReaderScreen(item: item, localPath: path),
+                            );
+                          }
                         }
                       },
-                      child: Obx(() {
-                        final downloaded = book.isDownloaded.value;
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: downloaded
-                                ? AppColors.primary
-                                : Colors.black87,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            downloaded ? 'read'.tr : 'Download',
-                            style: const TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.remove_red_eye_outlined,
-                          size: 13,
-                          color: subtitleColor,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 7,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          book.views,
+                        decoration: BoxDecoration(
+                          color: item.locked
+                              ? AppColors.secondary
+                              : AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          item.locked
+                              ? 'Unlock'
+                              : (item.contentType == 'audio' ? 'Play' : 'Read'),
                           style: TextStyle(
                             fontFamily: 'Inter',
-                            fontSize: 10.5,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.bold,
-                            color: subtitleColor,
+                            color: item.locked ? Colors.black87 : Colors.white,
                           ),
                         ),
-                      ],
+                      ),
                     ),
+
+                    // Offline Download Action (only if not locked)
+                    if (!item.locked)
+                      Obx(() {
+                        final downloaded = item.isDownloaded.value;
+                        return IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            downloaded
+                                ? Icons.cloud_done
+                                : Icons.cloud_download_outlined,
+                            size: 20,
+                            color: downloaded ? Colors.green : subtitleColor,
+                          ),
+                          onPressed: () async {
+                            if (!downloaded) {
+                              await controller.downloadItem(item);
+                            }
+                          },
+                        );
+                      }),
                   ],
                 ),
               ],
@@ -427,7 +513,7 @@ class LibraryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCoverPlaceholder(BookModel book) {
+  Widget _buildCoverPlaceholder(LibraryItemModel item) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -445,7 +531,7 @@ class LibraryScreen extends StatelessWidget {
               const Icon(Icons.menu_book, color: Colors.white, size: 28),
               const SizedBox(height: 8),
               Text(
-                book.title,
+                item.title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white70,
@@ -462,16 +548,17 @@ class LibraryScreen extends StatelessWidget {
     );
   }
 
-  static Widget _fallbackAvatar(BuildContext c, Object e, StackTrace? s) {
+  Widget _buildInitialsPlaceholder(String initials) {
     return Container(
       color: AppColors.primary,
-      child: const Center(
+      child: Center(
         child: Text(
-          'H',
-          style: TextStyle(
+          initials,
+          style: const TextStyle(
+            fontFamily: 'Inter',
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            fontSize: 18,
+            fontSize: 16,
           ),
         ),
       ),

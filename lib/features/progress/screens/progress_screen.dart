@@ -7,6 +7,7 @@ import '../widgets/overall_progress_card.dart';
 import '../widgets/activity_chart_card.dart';
 import '../widgets/achievements_section.dart';
 import '../widgets/monthly_goal_card.dart';
+import '../../auth/repositories/auth_repository.dart';
 
 class ProgressScreen extends StatelessWidget {
   const ProgressScreen({super.key});
@@ -38,15 +39,22 @@ class ProgressScreen extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: isDark
-                  ? AppColors.surfaceDark
-                  : AppColors.surfaceLight,
-              backgroundImage: const NetworkImage(
-                'https://ui-avatars.com/api/?name=Hamim&background=06402B&color=fff',
-              ),
-            ),
+            child: Obx(() {
+              final user = Get.find<AuthRepository>().currentUser.value;
+              final photoUrl = user?.photo;
+              final name = user?.username ?? 'User';
+              return CircleAvatar(
+                radius: 16,
+                backgroundColor: isDark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
+                backgroundImage: NetworkImage(
+                  (photoUrl != null && photoUrl.isNotEmpty)
+                      ? photoUrl
+                      : 'https://ui-avatars.com/api/?name=$name&background=06402B&color=fff&format=png',
+                ),
+              );
+            }),
           ),
         ],
       ),

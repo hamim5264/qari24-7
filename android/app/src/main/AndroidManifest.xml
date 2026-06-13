@@ -1,11 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="QARI 24/7"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <!-- Set default notification channel for background/terminated notifications -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel_v2" />
+
+        <!-- Set default notification icon for background/terminated notifications -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

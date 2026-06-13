@@ -213,13 +213,7 @@ class LoginScreen extends StatelessWidget {
                   Expanded(
                     child: SocialLoginButton(
                       provider: 'google',
-                      onPressed: () {
-                        Get.snackbar(
-                          'Google Sign In',
-                          'Simulating Google integration',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
+                      onPressed: controller.googleSignIn,
                     ),
                   ),
                 ],

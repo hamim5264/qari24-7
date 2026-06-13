@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import 'home_screen.dart';
 import '../../../core/services/localization_service.dart';
 import '../../library/screens/library_screen.dart';
+import '../../library/controllers/library_controller.dart';
 import '../../progress/screens/progress_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 
@@ -28,6 +29,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       _selectedIndex = index;
     });
+    if (index == 1) {
+      if (Get.isRegistered<LibraryController>()) {
+        Get.find<LibraryController>().fetchLibrary();
+      }
+    }
   }
 
   @override

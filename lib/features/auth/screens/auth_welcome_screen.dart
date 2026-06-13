@@ -13,7 +13,7 @@ class AuthWelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(AuthController());
+    final controller = Get.put(AuthController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -170,13 +170,7 @@ class AuthWelcomeScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     SocialLoginButton(
                       provider: 'google',
-                      onPressed: () {
-                        Get.snackbar(
-                          'Google Sign In',
-                          'Simulating Google integration',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
+                      onPressed: controller.googleSignIn,
                     ),
                     const SizedBox(height: 16),
                   ],

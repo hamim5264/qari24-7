@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/connectivity_service.dart';
+import '../../../core/services/network_service.dart';
+import '../../progress/controllers/progress_controller.dart';
 import '../models/quran_models.dart';
 import '../services/recitation_ai_service.dart';
 
@@ -103,11 +105,16 @@ class RecitationController extends GetxController {
   int _currentVerseRepeatTimes = 0;
   int _currentRangeRepeatTimes = 0;
 
+  late final NetworkService _networkService;
+  DateTime? _sessionStartTime;
+  int? _sessionStartVerse;
+
   @override
   void onInit() {
     super.onInit();
     _audioPlayer = AudioPlayer();
     _wordAudioPlayer = AudioPlayer();
+    _networkService = Get.find<NetworkService>();
 
     _wordAudioPlayer.setAudioContext(
       AudioContext(
@@ -167,6 +174,7 @@ class RecitationController extends GetxController {
 
   @override
   void onClose() {
+    _logSessionProgress();
     for (var r in activeTapRecognizers) {
       try {
         r.dispose();
@@ -190,18 +198,24 @@ class RecitationController extends GetxController {
     if (isPlayingAudio.value) {
       await _audioPlayer.pause();
       isPlayingAudio.value = false;
+      _logSessionProgress();
       return;
     }
 
     if (_audioPlayer.state == PlayerState.paused) {
       await _audioPlayer.resume();
       isPlayingAudio.value = true;
+      _sessionStartTime = DateTime.now();
+      _sessionStartVerse = _currentPlayingVerse;
       return;
     }
 
     _currentPlayingVerse = startingVerse.value;
     _currentVerseRepeatTimes = 0;
     _currentRangeRepeatTimes = 0;
+
+    _sessionStartTime = DateTime.now();
+    _sessionStartVerse = startingVerse.value;
 
     _playCurrentVerseAudio();
   }
@@ -341,6 +355,7 @@ class RecitationController extends GetxController {
         await _audioPlayer.stop();
         isPlayingAudio.value = false;
         currentPlayingAyahIndex.value = -1;
+        _logSessionProgress();
 
         Get.snackbar(
           'Playback Completed',
@@ -359,6 +374,7 @@ class RecitationController extends GetxController {
     await _audioPlayer.stop();
     isPlayingAudio.value = false;
     currentPlayingAyahIndex.value = -1;
+    _logSessionProgress();
   }
 
   void toggleAudioPlayback() {
@@ -406,6 +422,10 @@ class RecitationController extends GetxController {
   }
 
   void toggleRecitingMic() async {
+    if (isPlayingAudio.value) {
+      _logSessionProgress();
+    }
+
     isRecitingMic.value = !isRecitingMic.value;
     showMicCapsule.value = false;
 
@@ -415,6 +435,9 @@ class RecitationController extends GetxController {
       currentPlayingAyahIndex.value = -1;
 
       final surah = currentSurah.value;
+
+      _sessionStartTime = DateTime.now();
+      _sessionStartVerse = startingVerse.value;
       if (surah == null) {
         isRecitingMic.value = false;
         Get.snackbar(
@@ -517,6 +540,7 @@ class RecitationController extends GetxController {
         onError: (err) {
           isRecitingMic.value = false;
           mistakeDetectionActive.value = false;
+          _logSessionProgress();
           Get.snackbar(
             'Recitation Error',
             'Connection to recitation engine failed: $err',
@@ -528,11 +552,91 @@ class RecitationController extends GetxController {
         onDone: () {
           isRecitingMic.value = false;
           mistakeDetectionActive.value = false;
+          _logSessionProgress();
         },
       );
     } else {
       mistakeDetectionActive.value = false;
       await _recitationAIService.stopSession();
+      _logSessionProgress();
+    }
+  }
+
+  void _logSessionProgress() {
+    if (_sessionStartTime == null || currentSurah.value == null) return;
+
+    final startTime = _sessionStartTime!;
+    final endTime = DateTime.now();
+    final durationSeconds = endTime.difference(startTime).inSeconds;
+
+    if (durationSeconds < 1) {
+      _sessionStartTime = null;
+      _sessionStartVerse = null;
+      return;
+    }
+
+    final surahId = currentSurah.value!.number;
+    final startVerse = _sessionStartVerse ?? startingVerse.value;
+
+    int endVerse = startVerse;
+    if (isRecitingMic.value) {
+      endVerse = currentRecitingAyahNum.value > 0
+          ? currentRecitingAyahNum.value
+          : startVerse;
+    } else {
+      endVerse = _currentPlayingVerse > 0 ? _currentPlayingVerse : startVerse;
+    }
+
+    if (endVerse < startVerse) {
+      endVerse = startVerse;
+    }
+    final maxAyahs = currentSurah.value!.numberOfAyahs;
+    if (endVerse > maxAyahs) {
+      endVerse = maxAyahs;
+    }
+
+    _sessionStartTime = null;
+    _sessionStartVerse = null;
+
+    _logProgressToBackend(
+      surahId: surahId,
+      startVerse: startVerse,
+      endVerse: endVerse,
+      timeSpentSeconds: durationSeconds,
+    );
+  }
+
+  Future<void> _logProgressToBackend({
+    required int surahId,
+    required int startVerse,
+    required int endVerse,
+    required int timeSpentSeconds,
+  }) async {
+    try {
+      final body = {
+        'surah_id': surahId,
+        'verse_start': startVerse,
+        'verse_end': endVerse,
+        'time_spent': timeSpentSeconds,
+      };
+
+      debugPrint("[RecitationController] Logging progress to backend: $body");
+      final response = await _networkService.post('/progress/log/', data: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint("[RecitationController] Progress logged successfully.");
+        if (Get.isRegistered<ProgressController>()) {
+          Get.find<ProgressController>().fetchProgress();
+        }
+      } else {
+        debugPrint(
+          "[RecitationController] Progress log failed: ${response.statusCode} - ${response.data}",
+        );
+      }
+    } catch (e) {
+      debugPrint(
+        "[RecitationController] Error logging progress to backend: $e",
+      );
     }
   }
 

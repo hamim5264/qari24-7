@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../settings/controllers/settings_controller.dart';
+import '../../subscription/screens/go_premium_screen.dart';
 import '../controllers/recitation_controller.dart';
 import '../models/quran_models.dart';
 import '../widgets/surah_search_sheet.dart';
@@ -116,10 +118,15 @@ class RecitationScreen extends StatelessWidget {
               color: isDark ? Colors.white : Colors.black87,
             ),
             onPressed: () {
-              Get.bottomSheet(
-                const AudioSettingsBottomSheet(),
-                isScrollControlled: true,
-              );
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                Get.bottomSheet(
+                  const AudioSettingsBottomSheet(),
+                  isScrollControlled: true,
+                );
+              }
             },
           ),
           const SizedBox(width: 8),
@@ -503,10 +510,16 @@ class RecitationScreen extends StatelessWidget {
                                       : Colors.grey.shade400,
                                   size: 18,
                                 ),
-                                onPressed: () =>
+                                onPressed: () {
+                                  final settingsController = Get.find<SettingsController>();
+                                  if (!settingsController.isPremium.value) {
+                                    Get.to(() => const GoPremiumScreen());
+                                  } else {
                                     controller.toggleSingleAyahVisibility(
                                       ayah.numberInSurah,
-                                    ),
+                                    );
+                                  }
+                                },
                               ),
                             ],
                           ),
@@ -516,9 +529,16 @@ class RecitationScreen extends StatelessWidget {
 
                       if (isHidden) ...[
                         GestureDetector(
-                          onTap: () => controller.toggleSingleAyahVisibility(
-                            ayah.numberInSurah,
-                          ),
+                          onTap: () {
+                            final settingsController = Get.find<SettingsController>();
+                            if (!settingsController.isPremium.value) {
+                              Get.to(() => const GoPremiumScreen());
+                            } else {
+                              controller.toggleSingleAyahVisibility(
+                                ayah.numberInSurah,
+                              );
+                            }
+                          },
                           child: Container(
                             height: 60,
                             decoration: BoxDecoration(
@@ -632,8 +652,13 @@ class RecitationScreen extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              controller.showMicCapsule.value = false;
-              controller.playAudioForRange();
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                controller.showMicCapsule.value = false;
+                controller.playAudioForRange();
+              }
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -664,8 +689,13 @@ class RecitationScreen extends StatelessWidget {
 
           GestureDetector(
             onTap: () {
-              controller.showMicCapsule.value = false;
-              controller.toggleRecitingMic();
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                controller.showMicCapsule.value = false;
+                controller.toggleRecitingMic();
+              }
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -724,8 +754,13 @@ class RecitationScreen extends StatelessWidget {
                 size: 22,
               ),
               onPressed: () {
-                controller.showLinesWithAyahNumber.value =
-                    !controller.showLinesWithAyahNumber.value;
+                final settingsController = Get.find<SettingsController>();
+                if (!settingsController.isPremium.value) {
+                  Get.to(() => const GoPremiumScreen());
+                } else {
+                  controller.showLinesWithAyahNumber.value =
+                      !controller.showLinesWithAyahNumber.value;
+                }
               },
               tooltip: 'Hide/Show Lines',
             );
@@ -740,7 +775,12 @@ class RecitationScreen extends StatelessWidget {
                 size: 22,
               ),
               onPressed: () {
-                controller.toggleTajweed();
+                final settingsController = Get.find<SettingsController>();
+                if (!settingsController.isPremium.value) {
+                  Get.to(() => const GoPremiumScreen());
+                } else {
+                  controller.toggleTajweed();
+                }
               },
               tooltip: 'Toggle Tajwid',
             );
@@ -755,7 +795,12 @@ class RecitationScreen extends StatelessWidget {
                 size: 22,
               ),
               onPressed: () {
-                controller.toggleAyahHiddenMode();
+                final settingsController = Get.find<SettingsController>();
+                if (!settingsController.isPremium.value) {
+                  Get.to(() => const GoPremiumScreen());
+                } else {
+                  controller.toggleAyahHiddenMode();
+                }
               },
               tooltip: 'Toggle Hide Mode',
             );
@@ -802,10 +847,15 @@ class RecitationScreen extends StatelessWidget {
             onPressed: () {
               controller.showMicCapsule.value = false;
               controller.showEyeCapsule.value = false;
-              Get.bottomSheet(
-                const AudioSettingsBottomSheet(),
-                isScrollControlled: true,
-              );
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                Get.bottomSheet(
+                  const AudioSettingsBottomSheet(),
+                  isScrollControlled: true,
+                );
+              }
             },
             tooltip: 'Audio Settings',
           ),
@@ -814,10 +864,15 @@ class RecitationScreen extends StatelessWidget {
             onTap: () {
               controller.showMicCapsule.value = false;
               controller.showEyeCapsule.value = false;
-              Get.bottomSheet(
-                const MistakeDetectionSheet(),
-                isScrollControlled: true,
-              );
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                Get.bottomSheet(
+                  const MistakeDetectionSheet(),
+                  isScrollControlled: true,
+                );
+              }
             },
             child: Stack(
               clipBehavior: Clip.none,
@@ -896,17 +951,27 @@ class RecitationScreen extends StatelessWidget {
 
           GestureDetector(
             onTap: () {
-              controller.showMicCapsule.value = false;
-              controller.showEyeCapsule.value =
-                  !controller.showEyeCapsule.value;
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                controller.showMicCapsule.value = false;
+                controller.showEyeCapsule.value =
+                    !controller.showEyeCapsule.value;
+              }
             },
             onLongPress: () {
-              controller.showMicCapsule.value = false;
-              controller.showEyeCapsule.value = false;
-              Get.bottomSheet(
-                const EyeGuidelineSheet(),
-                isScrollControlled: true,
-              );
+              final settingsController = Get.find<SettingsController>();
+              if (!settingsController.isPremium.value) {
+                Get.to(() => const GoPremiumScreen());
+              } else {
+                controller.showMicCapsule.value = false;
+                controller.showEyeCapsule.value = false;
+                Get.bottomSheet(
+                  const EyeGuidelineSheet(),
+                  isScrollControlled: true,
+                );
+              }
             },
             child: Obx(() {
               final active = controller.isAyahHiddenMode.value;
@@ -1058,6 +1123,9 @@ class _QuranTextRendererState extends State<QuranTextRenderer> {
 
     final bismillahWords = ["بِسْمِ", "ٱللَّهِ", "ٱلرَّحْمَٰنِ", "ٱلرَّحِيمِ"];
 
+    final settingsController = Get.isRegistered<SettingsController>()
+        ? Get.find<SettingsController>()
+        : Get.put(SettingsController());
     final standardColor = isDark ? Colors.white : Colors.black;
     final activeStyle = baseStyle.copyWith(color: standardColor);
 
@@ -1109,7 +1177,7 @@ class _QuranTextRendererState extends State<QuranTextRenderer> {
       }
 
       final bgHighlight = isWordActive
-          ? (isDark ? const Color(0x444ADE80) : const Color(0x3316A34A))
+          ? settingsController.getHighlightColor(isDark)
           : (status != null
                 ? (status == 'correct'
                       ? const Color(0x114ADE80)
@@ -1315,6 +1383,9 @@ List<TextSpan> _getTajweedTextSpans(BuildContext context, Ayah ayah) {
   try {
     final controller = Get.find<RecitationController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final settingsController = Get.isRegistered<SettingsController>()
+        ? Get.find<SettingsController>()
+        : Get.put(SettingsController());
 
     final standardColor = controller.isRecitingMic.value
         ? (isDark ? Colors.white : Colors.black)
@@ -1430,7 +1501,7 @@ List<TextSpan> _getTajweedTextSpans(BuildContext context, Ayah ayah) {
       }
 
       final bgHighlight = isWordActive
-          ? (isDark ? const Color(0x444ADE80) : const Color(0x3316A34A))
+          ? settingsController.getHighlightColor(isDark)
           : (status != null
                 ? (status == 'correct'
                       ? const Color(0x114ADE80)

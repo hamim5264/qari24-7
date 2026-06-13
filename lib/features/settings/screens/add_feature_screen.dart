@@ -255,7 +255,7 @@ class _AddFeatureScreenState extends State<AddFeatureScreen> {
                         : () async {
                             final success = await controller
                                 .submitFeatureRequest();
-                            if (success) {
+                            if (success && context.mounted) {
                               _textController.clear();
                               FocusScope.of(context).unfocus();
                             }

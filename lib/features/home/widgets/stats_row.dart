@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/home_controller.dart';
 
 class StatsRow extends StatelessWidget {
   const StatsRow({super.key});
@@ -7,6 +8,7 @@ class StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final controller = Get.put(HomeController());
 
     final cardBgColor = isDark ? const Color(0xFF161616) : Colors.white;
     final labelColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -61,8 +63,8 @@ class StatsRow extends StatelessWidget {
                     ],
                   ),
 
-                  Text(
-                    "15 ${'days_streak'.tr.toUpperCase()}",
+                  Obx(() => Text(
+                    "${controller.dailyStreak.value} ${'days_streak'.tr.toUpperCase()}",
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 17,
@@ -71,7 +73,7 @@ class StatsRow extends StatelessWidget {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
+                  )),
 
                   Text(
                     'keep_it_up'.tr,
@@ -133,8 +135,8 @@ class StatsRow extends StatelessWidget {
                     ],
                   ),
 
-                  Text(
-                    "45 ${'minutes_spent'.tr}",
+                  Obx(() => Text(
+                    "${controller.timeSpentMinutes.value} ${'minutes_spent'.tr}",
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 17,
@@ -143,7 +145,7 @@ class StatsRow extends StatelessWidget {
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
+                  )),
 
                   Text(
                     'today_focus'.tr,

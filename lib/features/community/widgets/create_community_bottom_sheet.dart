@@ -4,10 +4,23 @@ import 'package:image_picker/image_picker.dart';
 import '../controllers/community_controller.dart';
 import '../../../core/constants/app_colors.dart';
 
-class CreateCommunityBottomSheet extends StatelessWidget {
+class CreateCommunityBottomSheet extends StatefulWidget {
   final CommunityController controller;
 
   const CreateCommunityBottomSheet({super.key, required this.controller});
+
+  @override
+  State<CreateCommunityBottomSheet> createState() => _CreateCommunityBottomSheetState();
+}
+
+class _CreateCommunityBottomSheetState extends State<CreateCommunityBottomSheet> {
+  CommunityController get controller => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.clearFields();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,26 +34,33 @@ class CreateCommunityBottomSheet extends StatelessWidget {
         ? Colors.grey.shade900
         : Colors.grey.shade200;
 
-    return Container(
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 100),
       padding: EdgeInsets.only(
-        top: 20,
-        left: 24,
-        right: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
-        ),
-      ),
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          padding: const EdgeInsets.only(
+            top: 20,
+            left: 24,
+            right: 24,
+            bottom: 24,
+          ),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Center(
               child: Container(
                 width: 48,
@@ -222,6 +242,7 @@ class CreateCommunityBottomSheet extends StatelessWidget {
             const SizedBox(height: 8),
             TextField(
               controller: controller.descController,
+              minLines: 2,
               maxLines: 4,
               decoration: InputDecoration(
                 hintText: 'what_is_community_about'.tr,
@@ -272,8 +293,9 @@ class CreateCommunityBottomSheet extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+      ),
+   );
+}
 
   void _showImageSourceSelector(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

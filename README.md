@@ -24,8 +24,11 @@ The first phase focus is a premium, high-fidelity frontend combined with robust 
   * Advanced graphs and streak tracking metrics to measure daily, weekly, and monthly recitation progress.
 * **Premium Subscriptions (`subscription`):**
   * Sleek pricing matrices, receipt listings, checkout fields, and plan management screen.
-* **Settings & Profiles (`settings`):**
+* **Settings & Profiles (`settings` & `profile`):**
   * Modular system control, subscription statuses, and localization preferences.
+  * Added detailed premium information screens: **About QARI 24/7**, **Help Center**, **Terms of Service**, and **Privacy Policy** with dynamic light/dark theme support.
+  * Integrated contact support email (`Thehub923community@gmail.com`) with instant copy-to-clipboard actions.
+  * Styled the Logout confirmation popup Cancel button to use the primary green color (`AppColors.primary`).
 
 ---
 

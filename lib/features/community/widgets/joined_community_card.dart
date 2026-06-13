@@ -93,8 +93,8 @@ class JoinedCommunityCard extends StatelessWidget {
                             height: 48,
                             fit: BoxFit.cover,
                           )
-                        : Image.network(
-                            community.photoUrl,
+                        : Obx(() => Image.network(
+                            community.photoUrl.value,
                             width: 48,
                             height: 48,
                             fit: BoxFit.cover,
@@ -114,7 +114,7 @@ class JoinedCommunityCard extends StatelessWidget {
                                         : AppColors.primary,
                                   ),
                                 ),
-                          ),
+                          )),
                   ),
                   const SizedBox(width: 12),
 
@@ -122,8 +122,8 @@ class JoinedCommunityCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          community.name,
+                        Obx(() => Text(
+                          community.name.value,
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 16,
@@ -132,7 +132,7 @@ class JoinedCommunityCard extends StatelessWidget {
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                        ),
+                        )),
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -160,8 +160,8 @@ class JoinedCommunityCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              Text(
-                community.description,
+              Obx(() => Text(
+                community.description.value,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -169,7 +169,7 @@ class JoinedCommunityCard extends StatelessWidget {
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-              ),
+              )),
               const SizedBox(height: 16),
 
               Row(

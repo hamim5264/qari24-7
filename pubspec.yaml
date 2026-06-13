@@ -26,6 +26,13 @@ dependencies:
   web_socket_channel: ^3.0.1
   url_launcher: ^6.3.2
   firebase_core: ^4.9.0
+  cached_network_image: ^3.3.1
+  google_sign_in: any
+  firebase_messaging: any
+  flutter_local_notifications: ^17.1.2
+  syncfusion_flutter_pdfviewer: ^33.2.12
+  flutter_stripe: ^13.0.0
+  share_plus: ^12.0.2
 
 dev_dependencies:
   flutter_test:

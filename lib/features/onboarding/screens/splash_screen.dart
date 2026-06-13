@@ -5,6 +5,8 @@ import '../../../core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/screens/auth_welcome_screen.dart';
 import 'welcome_screen.dart';
+import '../../auth/repositories/auth_repository.dart';
+import '../../home/screens/main_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,6 +25,14 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkOnboardingAndNavigate() async {
     await Future.delayed(const Duration(seconds: 3));
     try {
+      final authRepo = Get.find<AuthRepository>();
+      await authRepo.loadSession();
+
+      if (authRepo.isLogged.value) {
+        Get.off(() => const MainNavigationScreen());
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final bool completed = prefs.getBool('onboarding_completed') ?? false;
       if (completed) {

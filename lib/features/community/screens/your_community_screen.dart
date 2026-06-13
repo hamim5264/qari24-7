@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/community_controller.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../progress/controllers/progress_controller.dart';
+import '../../progress/screens/leaderboard_screen.dart';
+import '../../settings/controllers/settings_controller.dart';
+import '../../subscription/screens/select_plan_screen.dart';
+import 'package:share_plus/share_plus.dart';
+import '../widgets/edit_community_bottom_sheet.dart';
 
 class YourCommunityScreen extends StatelessWidget {
   final CommunityModel community;
@@ -103,13 +109,13 @@ class YourCommunityScreen extends StatelessWidget {
                                     ),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(14),
-                                      child: community.localImage != null
+                                      child: Obx(() => community.localImage != null
                                           ? Image.file(
                                               community.localImage!,
                                               fit: BoxFit.cover,
                                             )
                                           : Image.network(
-                                              community.photoUrl,
+                                              community.photoUrl.value,
                                               fit: BoxFit.cover,
                                               errorBuilder: (c, e, s) =>
                                                   const Icon(
@@ -117,7 +123,7 @@ class YourCommunityScreen extends StatelessWidget {
                                                     color: Colors.white,
                                                     size: 28,
                                                   ),
-                                            ),
+                                            )),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -134,8 +140,8 @@ class YourCommunityScreen extends StatelessWidget {
                                           Row(
                                             children: [
                                               Expanded(
-                                                child: Text(
-                                                  community.name,
+                                                child: Obx(() => Text(
+                                                  community.name.value,
                                                   style: const TextStyle(
                                                     fontFamily: 'Inter',
                                                     fontSize: 20,
@@ -145,7 +151,7 @@ class YourCommunityScreen extends StatelessWidget {
                                                   maxLines: 1,
                                                   overflow:
                                                       TextOverflow.ellipsis,
-                                                ),
+                                                )),
                                               ),
                                               const SizedBox(width: 4),
                                               Container(
@@ -174,17 +180,17 @@ class YourCommunityScreen extends StatelessWidget {
                                             ],
                                           ),
                                           const SizedBox(height: 6),
-                                          Text(
-                                            community.description,
-                                            style: const TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: 12.5,
-                                              color: Colors.white70,
-                                              height: 1.4,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                           Obx(() => Text(
+                                             community.description.value,
+                                             style: const TextStyle(
+                                               fontFamily: 'Inter',
+                                               fontSize: 12.5,
+                                               color: Colors.white70,
+                                               height: 1.4,
+                                             ),
+                                             maxLines: 2,
+                                             overflow: TextOverflow.ellipsis,
+                                           )),
                                         ],
                                       ),
                                     ),
@@ -200,13 +206,12 @@ class YourCommunityScreen extends StatelessWidget {
                                     flex: 4,
                                     child: GestureDetector(
                                       onTap: () {
-                                        Get.snackbar(
-                                          'Leaderboard',
-                                          'Displaying circle leaderboard...',
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: AppColors.secondary,
-                                          colorText: Colors.black87,
-                                        );
+                                        final progressController = Get.isRegistered<ProgressController>()
+                                            ? Get.find<ProgressController>()
+                                            : Get.put(ProgressController());
+                                        progressController.setLeaderboardTab('community');
+                                        progressController.fetchLeaderboardData();
+                                        Get.to(() => const LeaderboardScreen());
                                       },
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
@@ -255,12 +260,10 @@ class YourCommunityScreen extends StatelessWidget {
                                     flex: 3,
                                     child: GestureDetector(
                                       onTap: () {
-                                        Get.snackbar(
-                                          'Invite',
-                                          'Share invite link copied to clipboard!',
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: AppColors.primary,
-                                          colorText: Colors.white,
+                                        SharePlus.instance.share(
+                                          ShareParams(
+                                            text: "Join our Quran community '${community.name.value}' on Qari 24/7!\n\nDownload the app and start learning together: https://qari247.app/invite?community=${community.id}",
+                                          ),
                                         );
                                       },
                                       child: Container(
@@ -318,15 +321,16 @@ class YourCommunityScreen extends StatelessWidget {
                             top: 24,
                             right: 24,
                             child: GestureDetector(
-                              onTap: () {
-                                Get.snackbar(
-                                  'Edit Community',
-                                  'Community editing options coming soon!',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                  backgroundColor: AppColors.primary,
-                                  colorText: Colors.white,
-                                );
-                              },
+                                onTap: () {
+                                  Get.bottomSheet(
+                                    EditCommunityBottomSheet(
+                                      community: community,
+                                      controller: controller,
+                                    ),
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                  );
+                                },
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: const BoxDecoration(
@@ -472,32 +476,60 @@ class YourCommunityScreen extends StatelessWidget {
                       label: 'delete_community'.tr,
                       icon: Icons.delete_outline,
                       isDelete: true,
-                      onTap: () => _showConfirmationDialog(
-                        context: context,
-                        title: 'delete_community'.tr,
-                        message: 'confirm_delete'.tr,
-                        onConfirm: () {
-                          controller.deleteCommunity(community);
-                          Get.back();
-                          Get.back();
-                        },
-                      ),
+                      onTap: () {
+                        final settingsController = Get.find<SettingsController>();
+                        if (!settingsController.isPremium.value) {
+                          Get.to(() => const SelectPlanScreen());
+                          Get.snackbar(
+                            'Premium Required',
+                            'You must be a premium user to delete a community.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.orange.shade900,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+                        _showConfirmationDialog(
+                          context: context,
+                          title: 'delete_community'.tr,
+                          message: 'confirm_delete'.tr,
+                          onConfirm: () {
+                            controller.deleteCommunity(community);
+                            Get.back();
+                            Get.back();
+                          },
+                        );
+                      },
                     )
                   : _buildActionButton(
                       context: context,
                       label: 'leave_community'.tr,
                       icon: Icons.exit_to_app,
                       isDelete: false,
-                      onTap: () => _showConfirmationDialog(
-                        context: context,
-                        title: 'leave_community'.tr,
-                        message: 'confirm_leave'.tr,
-                        onConfirm: () {
-                          controller.leaveCommunity(community);
-                          Get.back();
-                          Get.back();
-                        },
-                      ),
+                      onTap: () {
+                        final settingsController = Get.find<SettingsController>();
+                        if (!settingsController.isPremium.value) {
+                          Get.to(() => const SelectPlanScreen());
+                          Get.snackbar(
+                            'Premium Required',
+                            'You must be a premium user to leave a community.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.orange.shade900,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+                        _showConfirmationDialog(
+                          context: context,
+                          title: 'leave_community'.tr,
+                          message: 'confirm_leave'.tr,
+                          onConfirm: () {
+                            controller.leaveCommunity(community);
+                            Get.back();
+                            Get.back();
+                          },
+                        );
+                      },
                     ),
             ),
           ],

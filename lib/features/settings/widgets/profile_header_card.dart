@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/constants/app_colors.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final String name;
   final String email;
+  final String? photoUrl;
   final bool isPremium;
   final VoidCallback onManageTap;
 
@@ -12,6 +14,7 @@ class ProfileHeaderCard extends StatelessWidget {
     super.key,
     required this.name,
     required this.email,
+    this.photoUrl,
     required this.isPremium,
     required this.onManageTap,
   });
@@ -47,17 +50,26 @@ class ProfileHeaderCard extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.secondary, width: 2),
             ),
-            child: CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              child: Text(
-                name.isNotEmpty ? name[0] : 'U',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                  fontFamily: 'Inter',
-                ),
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: ClipOval(
+                child: photoUrl != null && photoUrl!.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: photoUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            _buildInitialsPlaceholder(),
+                      )
+                    : _buildInitialsPlaceholder(),
               ),
             ),
           ),
@@ -82,6 +94,8 @@ class ProfileHeaderCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 13,
@@ -144,6 +158,22 @@ class ProfileHeaderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInitialsPlaceholder() {
+    return Container(
+      color: AppColors.primary.withValues(alpha: 0.1),
+      alignment: Alignment.center,
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : 'U',
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+          fontFamily: 'Inter',
+        ),
       ),
     );
   }

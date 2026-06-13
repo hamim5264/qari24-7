@@ -5,6 +5,8 @@ import '../widgets/joined_community_card.dart';
 import '../widgets/explore_community_card.dart';
 import '../widgets/create_community_bottom_sheet.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../settings/controllers/settings_controller.dart';
+import '../../subscription/screens/select_plan_screen.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -47,7 +49,30 @@ class CommunityScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2.5,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Loading communities...',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
@@ -104,6 +129,19 @@ class CommunityScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     GestureDetector(
                       onTap: () {
+                        final settingsController = Get.find<SettingsController>();
+                        if (!settingsController.isPremium.value) {
+                          Get.to(() => const SelectPlanScreen());
+                          Get.snackbar(
+                            'Premium Required',
+                            'You must be a premium user to create a community.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.orange.shade900,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+                        controller.clearFields();
                         Get.bottomSheet(
                           CreateCommunityBottomSheet(controller: controller),
                           isScrollControlled: true,
@@ -281,7 +319,8 @@ class CommunityScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+        );
+      }),
     );
   }
 }

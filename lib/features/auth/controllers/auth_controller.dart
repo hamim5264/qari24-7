@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
+import '../repositories/auth_repository.dart';
 import '../../home/screens/main_navigation_screen.dart';
+import '../screens/check_email_screen.dart';
 
 class AuthController extends GetxController {
   var isPasswordVisible = false.obs;
@@ -50,9 +52,9 @@ class AuthController extends GetxController {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
-        imageQuality: 85,
-        maxWidth: 500,
-        maxHeight: 500,
+        imageQuality: 75,
+        maxWidth: 250,
+        maxHeight: 250,
       );
       if (pickedFile != null) {
         profileImage.value = File(pickedFile.path);
@@ -61,8 +63,10 @@ class AuthController extends GetxController {
         }
         Get.snackbar(
           'Success',
-          'Profile picture updated successfully!',
+          'Profile picture selected!',
           snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF06402B),
+          colorText: Colors.white,
         );
       }
     } catch (e) {
@@ -70,6 +74,8 @@ class AuthController extends GetxController {
         'Error',
         'Failed to pick image: $e',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade900,
+        colorText: Colors.white,
       );
     }
   }
@@ -81,42 +87,169 @@ class AuthController extends GetxController {
     }
   }
 
-  void login() {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+  Future<void> login() async {
+    final emailVal = emailController.text.trim();
+    final passwordVal = passwordController.text;
+
+    if (emailVal.isEmpty || passwordVal.isEmpty) {
       Get.snackbar('Error', 'Please fill in all fields');
       return;
     }
+
     isLoading.value = true;
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      final authRepository = Get.find<AuthRepository>();
+      await authRepository.login(email: emailVal, password: passwordVal);
       isLoading.value = false;
-      Get.snackbar('Login', 'Logged in as ${emailController.text}');
+
+      Get.snackbar(
+        'Success',
+        'Login successful!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF06402B),
+        colorText: Colors.white,
+      );
+
       Get.offAll(() => const MainNavigationScreen());
-    });
+    } catch (e) {
+      isLoading.value = false;
+      debugPrint("AuthController.login caught error: $e");
+      Get.snackbar(
+        'Login Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade900,
+        colorText: Colors.white,
+      );
+    }
   }
 
-  void signUp() {
-    if (nameController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        passwordController.text.isEmpty) {
+  Future<void> signUp() async {
+    final nameVal = nameController.text.trim();
+    final emailVal = emailController.text.trim();
+    final passwordVal = passwordController.text;
+    final confirmPasswordVal = confirmPasswordController.text;
+
+    if (nameVal.isEmpty || emailVal.isEmpty || passwordVal.isEmpty) {
       Get.snackbar('Error', 'Please fill in all required fields');
       return;
     }
-    if (passwordController.text != confirmPasswordController.text) {
+
+    if (passwordVal != confirmPasswordVal) {
       Get.snackbar('Error', 'Passwords do not match');
       return;
     }
+
     isLoading.value = true;
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      final authRepository = Get.find<AuthRepository>();
+      await authRepository.register(
+        username: nameVal,
+        email: emailVal,
+        password: passwordVal,
+        confirmPassword: confirmPasswordVal,
+        photo: profileImage.value,
+      );
       isLoading.value = false;
-      Get.snackbar('Sign Up', 'Creating account for ${nameController.text}');
+
+      Get.snackbar(
+        'Success',
+        'Account created successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF06402B),
+        colorText: Colors.white,
+      );
+
       Get.offAll(() => const MainNavigationScreen());
-    });
+    } catch (e) {
+      isLoading.value = false;
+      debugPrint("AuthController.signUp caught error: $e");
+      Get.snackbar(
+        'Registration Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade900,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> sendForgotPasswordEmail() async {
+    final emailVal = emailController.text.trim();
+    if (emailVal.isEmpty) {
+      Get.snackbar('Error', 'Please enter your email address');
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      final authRepository = Get.find<AuthRepository>();
+      await authRepository.forgotPassword(email: emailVal);
+      isLoading.value = false;
+
+      startResendTimer();
+      Get.to(() => const CheckEmailScreen());
+    } catch (e) {
+      isLoading.value = false;
+      debugPrint("AuthController.sendForgotPasswordEmail caught error: $e");
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade900,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> googleSignIn() async {
+    isLoading.value = true;
+    try {
+      await GoogleSignIn.instance.initialize();
+      final googleUser = await GoogleSignIn.instance.authenticate();
+
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw "Could not retrieve Google ID Token.";
+      }
+
+      final authRepo = Get.find<AuthRepository>();
+      await authRepo.googleLogin(
+        googleId: googleUser.id,
+        email: googleUser.email,
+        idToken: idToken,
+        name: googleUser.displayName ?? '',
+        photoUrl: googleUser.photoUrl ?? '',
+      );
+
+      isLoading.value = false;
+      Get.snackbar(
+        'Success',
+        'Google Login successful!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF06402B),
+        colorText: Colors.white,
+      );
+      Get.offAll(() => const MainNavigationScreen());
+    } catch (e) {
+      isLoading.value = false;
+      debugPrint("AuthController.googleSignIn caught error: $e");
+      Get.snackbar(
+        'Google Sign In Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade900,
+        colorText: Colors.white,
+      );
+    }
   }
 
   @override
   void onClose() {
     _resendTimer?.cancel();
-
+    // Do not dispose text controllers here to avoid GetX route transition race conditions.
+    // They will be garbage collected safely with the controller instance.
     super.onClose();
   }
 }

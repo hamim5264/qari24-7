@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../community/screens/community_screen.dart';
+import '../../community/controllers/community_controller.dart';
 
 class CommunityCard extends StatelessWidget {
   const CommunityCard({super.key});
@@ -8,6 +9,9 @@ class CommunityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final communityController = Get.isRegistered<CommunityController>()
+        ? Get.find<CommunityController>()
+        : Get.put(CommunityController());
 
     final cardBgColor = isDark ? const Color(0xFF161616) : Colors.white;
     final labelColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -105,63 +109,88 @@ class CommunityCard extends StatelessWidget {
 
                 const SizedBox(width: 16),
 
-                SizedBox(
-                  width: 72,
-                  height: 28,
-                  child: Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [
-                      Positioned(
-                        left: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(1.5),
-                          decoration: BoxDecoration(
-                            color: cardBgColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const CircleAvatar(
-                            radius: 11,
-                            backgroundImage: NetworkImage(
-                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100',
+                Obx(() {
+                  final List<String> memberPhotos = [];
+                  final seenUsernames = <String>{};
+
+                  for (var c in communityController.joinedCommunities) {
+                    for (var m in c.members) {
+                      final name = m.name.replaceAll(' (You)', '');
+                      if (!seenUsernames.contains(name) && m.avatarUrl.isNotEmpty) {
+                        seenUsernames.add(name);
+                        memberPhotos.add(m.avatarUrl);
+                      }
+                    }
+                  }
+                  for (var c in communityController.exploreCommunities) {
+                    for (var m in c.members) {
+                      final name = m.name.replaceAll(' (You)', '');
+                      if (!seenUsernames.contains(name) && m.avatarUrl.isNotEmpty) {
+                        seenUsernames.add(name);
+                        memberPhotos.add(m.avatarUrl);
+                      }
+                    }
+                  }
+
+                  // Fallbacks
+                  final fallbackNames = ['Hamim Leon', 'Qari Premium', 'Rafa'];
+                  while (memberPhotos.length < 3) {
+                    final name = fallbackNames[memberPhotos.length % fallbackNames.length];
+                    memberPhotos.add('https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=random&format=png');
+                  }
+
+                  return SizedBox(
+                    width: 72,
+                    height: 28,
+                    child: Stack(
+                      alignment: Alignment.centerLeft,
+                      children: [
+                        Positioned(
+                          left: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(1.5),
+                            decoration: BoxDecoration(
+                              color: cardBgColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CircleAvatar(
+                              radius: 11,
+                              backgroundImage: NetworkImage(memberPhotos[0]),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        left: 15,
-                        child: Container(
-                          padding: const EdgeInsets.all(1.5),
-                          decoration: BoxDecoration(
-                            color: cardBgColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const CircleAvatar(
-                            radius: 11,
-                            backgroundImage: NetworkImage(
-                              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100',
+                        Positioned(
+                          left: 15,
+                          child: Container(
+                            padding: const EdgeInsets.all(1.5),
+                            decoration: BoxDecoration(
+                              color: cardBgColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CircleAvatar(
+                              radius: 11,
+                              backgroundImage: NetworkImage(memberPhotos[1]),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        left: 30,
-                        child: Container(
-                          padding: const EdgeInsets.all(1.5),
-                          decoration: BoxDecoration(
-                            color: cardBgColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const CircleAvatar(
-                            radius: 11,
-                            backgroundImage: NetworkImage(
-                              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100',
+                        Positioned(
+                          left: 30,
+                          child: Container(
+                            padding: const EdgeInsets.all(1.5),
+                            decoration: BoxDecoration(
+                              color: cardBgColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CircleAvatar(
+                              radius: 11,
+                              backgroundImage: NetworkImage(memberPhotos[2]),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
           ],

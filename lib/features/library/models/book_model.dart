@@ -1,42 +1,49 @@
 import 'package:get/get.dart';
 
-class BookModel {
-  final String id;
+class LibraryItemModel {
+  final int id;
   final String title;
-  final String author;
+  final String description;
+  final String contentType; // "pdf", "audio", "book"
+  final String access; // "free", "premium"
+  final String? fileUrl;
   final String coverUrl;
-  final String pdfUrl;
-  final String views;
-  final String category;
-  final List<String> pages;
+  final String createdAt;
+  final bool locked;
+  final String? message;
 
+  // Local state for downloads
   final RxBool isDownloaded = false.obs;
   final RxDouble downloadProgress = 0.0.obs;
 
-  BookModel({
+  LibraryItemModel({
     required this.id,
     required this.title,
-    required this.author,
+    required this.description,
+    required this.contentType,
+    required this.access,
+    this.fileUrl,
     required this.coverUrl,
-    required this.pdfUrl,
-    required this.views,
-    required this.category,
-    required this.pages,
+    required this.createdAt,
+    required this.locked,
+    this.message,
     bool initialDownloaded = false,
   }) {
     isDownloaded.value = initialDownloaded;
   }
 
-  factory BookModel.fromJson(Map<String, dynamic> json) {
-    return BookModel(
-      id: json['id'] ?? '',
+  factory LibraryItemModel.fromJson(Map<String, dynamic> json) {
+    return LibraryItemModel(
+      id: json['id'] ?? 0,
       title: json['title'] ?? '',
-      author: json['author'] ?? '',
-      coverUrl: json['coverUrl'] ?? '',
-      pdfUrl: json['pdfUrl'] ?? '',
-      views: json['views'] ?? '0',
-      category: json['category'] ?? 'All',
-      pages: List<String>.from(json['pages'] ?? []),
+      description: json['description'] ?? '',
+      contentType: json['content_type'] ?? '',
+      access: json['access'] ?? 'free',
+      fileUrl: json['file_url'],
+      coverUrl: json['cover_url'] ?? '',
+      createdAt: json['created_at'] ?? '',
+      locked: json['locked'] ?? false,
+      message: json['message'],
       initialDownloaded: json['isDownloaded'] ?? false,
     );
   }
@@ -45,12 +52,14 @@ class BookModel {
     return {
       'id': id,
       'title': title,
-      'author': author,
-      'coverUrl': coverUrl,
-      'pdfUrl': pdfUrl,
-      'views': views,
-      'category': category,
-      'pages': pages,
+      'description': description,
+      'content_type': contentType,
+      'access': access,
+      'file_url': fileUrl,
+      'cover_url': coverUrl,
+      'created_at': createdAt,
+      'locked': locked,
+      'message': message,
       'isDownloaded': isDownloaded.value,
     };
   }
