@@ -5,8 +5,9 @@ import '../widgets/joined_community_card.dart';
 import '../widgets/explore_community_card.dart';
 import '../widgets/create_community_bottom_sheet.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../settings/controllers/settings_controller.dart';
 import '../../subscription/screens/select_plan_screen.dart';
+import '../../subscription/controllers/subscription_controller.dart';
+import 'see_all_communities_screen.dart';
 
 class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
@@ -128,9 +129,12 @@ class CommunityScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      onTap: () {
-                        final settingsController = Get.find<SettingsController>();
-                        if (!settingsController.isPremium.value) {
+                      onTap: () async {
+                        final subController = Get.isRegistered<SubscriptionController>()
+                            ? Get.find<SubscriptionController>()
+                            : Get.put(SubscriptionController());
+                        final isPrem = await subController.refreshAndVerifyPremium();
+                        if (!isPrem) {
                           Get.to(() => const SelectPlanScreen());
                           Get.snackbar(
                             'Premium Required',
@@ -204,15 +208,23 @@ class CommunityScreen extends StatelessWidget {
                               color: headerTextColor,
                             ),
                           ),
-                          Text(
-                            'See All',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
+                          GestureDetector(
+                            onTap: () {
+                              Get.to(() => SeeAllCommunitiesScreen(
+                                    isJoinedOnly: true,
+                                    controller: controller,
+                                  ));
+                            },
+                            child: Text(
+                              'See All',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
+                              ),
                             ),
                           ),
                         ],
@@ -260,15 +272,23 @@ class CommunityScreen extends StatelessWidget {
                         color: headerTextColor,
                       ),
                     ),
-                    Text(
-                      'See All',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600,
+                    GestureDetector(
+                      onTap: () {
+                        Get.to(() => SeeAllCommunitiesScreen(
+                              isJoinedOnly: false,
+                              controller: controller,
+                            ));
+                      },
+                      child: Text(
+                        'See All',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                        ),
                       ),
                     ),
                   ],

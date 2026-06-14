@@ -6,6 +6,8 @@ import 'features/onboarding/screens/splash_screen.dart';
 
 import 'core/widgets/internet_status_overlay.dart';
 
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 class QariApp extends StatelessWidget {
   const QariApp({super.key});
 
@@ -14,6 +16,8 @@ class QariApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'QARI 24/7',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver],
+
 
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../repositories/auth_repository.dart';
 import '../../home/screens/main_navigation_screen.dart';
 import '../screens/check_email_screen.dart';
+import '../../subscription/controllers/subscription_controller.dart';
 
 class AuthController extends GetxController {
   var isPasswordVisible = false.obs;
@@ -102,6 +103,16 @@ class AuthController extends GetxController {
       await authRepository.login(email: emailVal, password: passwordVal);
       isLoading.value = false;
 
+      // Eagerly check and update the premium status
+      if (Get.isRegistered<SubscriptionController>()) {
+        final subController = Get.find<SubscriptionController>();
+        try {
+          await subController.fetchSubscriptionDetails().timeout(const Duration(seconds: 4));
+        } catch (e) {
+          debugPrint("Login eager subscription fetch timed out/failed: $e");
+        }
+      }
+
       Get.snackbar(
         'Success',
         'Login successful!',
@@ -151,6 +162,16 @@ class AuthController extends GetxController {
         photo: profileImage.value,
       );
       isLoading.value = false;
+
+      // Eagerly check and update the premium status
+      if (Get.isRegistered<SubscriptionController>()) {
+        final subController = Get.find<SubscriptionController>();
+        try {
+          await subController.fetchSubscriptionDetails().timeout(const Duration(seconds: 4));
+        } catch (e) {
+          debugPrint("Sign up eager subscription fetch timed out/failed: $e");
+        }
+      }
 
       Get.snackbar(
         'Success',
@@ -222,6 +243,16 @@ class AuthController extends GetxController {
         name: googleUser.displayName ?? '',
         photoUrl: googleUser.photoUrl ?? '',
       );
+
+      // Eagerly check and update the premium status
+      if (Get.isRegistered<SubscriptionController>()) {
+        final subController = Get.find<SubscriptionController>();
+        try {
+          await subController.fetchSubscriptionDetails().timeout(const Duration(seconds: 4));
+        } catch (e) {
+          debugPrint("Google Sign In eager subscription fetch timed out/failed: $e");
+        }
+      }
 
       isLoading.value = false;
       Get.snackbar(

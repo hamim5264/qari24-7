@@ -4,6 +4,7 @@ import '../controllers/community_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../settings/controllers/settings_controller.dart';
 import '../../subscription/screens/select_plan_screen.dart';
+import '../../subscription/controllers/subscription_controller.dart';
 
 class ExploreCommunityCard extends StatelessWidget {
   final CommunityModel community;
@@ -109,9 +110,12 @@ class ExploreCommunityCard extends StatelessWidget {
 
   Widget _buildJoinButton(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        final settingsController = Get.find<SettingsController>();
-        if (!settingsController.isPremium.value) {
+      onTap: () async {
+        final subController = Get.isRegistered<SubscriptionController>()
+            ? Get.find<SubscriptionController>()
+            : Get.put(SubscriptionController());
+        final isPrem = await subController.refreshAndVerifyPremium();
+        if (!isPrem) {
           Get.to(() => const SelectPlanScreen());
           Get.snackbar(
             'Premium Required',

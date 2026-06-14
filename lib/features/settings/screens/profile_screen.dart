@@ -17,6 +17,13 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Eagerly refresh subscription details in the background when entering ProfileScreen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<SubscriptionController>()) {
+        Get.find<SubscriptionController>().fetchSubscriptionDetails();
+      }
+    });
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final controller = Get.find<SettingsController>();
 

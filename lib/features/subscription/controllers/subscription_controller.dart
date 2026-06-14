@@ -96,6 +96,40 @@ class SubscriptionController extends GetxController {
     selectedPlan.value = planType;
   }
 
+  /// Eagerly refresh and verify premium status.
+  /// If already premium in memory, does a silent background fetch and returns true immediately.
+  /// If free, shows a blocking loader while checking if a purchase was recently made.
+  Future<bool> refreshAndVerifyPremium({bool showLoading = true}) async {
+    final settingsController = Get.find<SettingsController>();
+    if (settingsController.isPremium.value) {
+      // Already premium, refresh in background silently to not interrupt UX
+      fetchSubscriptionDetails();
+      return true;
+    }
+
+    if (showLoading) {
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0F4E36)),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+    }
+
+    try {
+      await fetchSubscriptionDetails().timeout(const Duration(seconds: 4));
+    } catch (e) {
+      debugPrint("refreshAndVerifyPremium error: $e");
+    } finally {
+      if (showLoading) {
+        Get.back();
+      }
+    }
+    return settingsController.isPremium.value;
+  }
+
   void selectPaymentMethod(String method) {
     selectedPaymentMethod.value = method;
   }

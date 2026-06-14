@@ -7,6 +7,7 @@ import '../../auth/screens/auth_welcome_screen.dart';
 import 'welcome_screen.dart';
 import '../../auth/repositories/auth_repository.dart';
 import '../../home/screens/main_navigation_screen.dart';
+import '../../subscription/controllers/subscription_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -29,6 +30,14 @@ class _SplashScreenState extends State<SplashScreen> {
       await authRepo.loadSession();
 
       if (authRepo.isLogged.value) {
+        if (Get.isRegistered<SubscriptionController>()) {
+          final subController = Get.find<SubscriptionController>();
+          try {
+            await subController.fetchSubscriptionDetails().timeout(const Duration(seconds: 4));
+          } catch (e) {
+            debugPrint("Splash screen eager subscription fetch timed out/failed: $e");
+          }
+        }
         Get.off(() => const MainNavigationScreen());
         return;
       }

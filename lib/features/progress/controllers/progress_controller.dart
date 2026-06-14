@@ -434,11 +434,15 @@ class ProgressController extends GetxController {
         }
       }
       hasCommunityLeaderboard.value = false;
+      rxCommunityPodiumUsers.clear();
+      rxCommunityOtherRankings.clear();
     } catch (e) {
       debugPrint(
         "ProgressController.fetchLeaderboardData failed, using fallback: $e",
       );
       hasCommunityLeaderboard.value = false;
+      rxCommunityPodiumUsers.clear();
+      rxCommunityOtherRankings.clear();
     }
   }
 

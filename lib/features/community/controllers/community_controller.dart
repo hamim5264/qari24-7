@@ -6,6 +6,7 @@ import 'package:dio/dio.dart' as dio;
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/network_service.dart';
 import '../../auth/repositories/auth_repository.dart';
+import '../../progress/controllers/progress_controller.dart';
 
 class MemberModel {
   final String name;
@@ -230,12 +231,24 @@ class CommunityController extends GetxController {
         fetchCommunities();
       } else {
         community.status.value = 'none';
-        Get.snackbar('Error', 'Failed to submit join request.');
+        Get.snackbar(
+          'Error',
+          'Failed to submit join request.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       community.status.value = 'none';
       debugPrint("CommunityController.joinCommunity error: $e");
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -254,17 +267,29 @@ class CommunityController extends GetxController {
           'Community',
           'Join request for ${community.name.value} cancelled.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.grey.shade800,
+          backgroundColor: AppColors.primary,
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
         );
         fetchCommunities();
       } else {
-        Get.snackbar('Error', 'Failed to cancel join request.');
+        Get.snackbar(
+          'Error',
+          'Failed to cancel join request.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint("CommunityController.cancelJoinRequest error: $e");
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -287,16 +312,31 @@ class CommunityController extends GetxController {
           'Community',
           'You have left ${community.name.value}',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.orange.shade800,
+          backgroundColor: AppColors.primary,
           colorText: Colors.white,
         );
         fetchCommunities();
+        if (Get.isRegistered<ProgressController>()) {
+          Get.find<ProgressController>().fetchLeaderboardData();
+        }
       } else {
-        Get.snackbar('Error', 'Failed to leave community.');
+        Get.snackbar(
+          'Error',
+          'Failed to leave community.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint("CommunityController.leaveCommunity error: $e");
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -316,16 +356,31 @@ class CommunityController extends GetxController {
           'Community',
           'Community "${community.name.value}" deleted successfully.',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.primary,
           colorText: Colors.white,
         );
         fetchCommunities();
+        if (Get.isRegistered<ProgressController>()) {
+          Get.find<ProgressController>().fetchLeaderboardData();
+        }
       } else {
-        Get.snackbar('Error', 'Failed to delete community.');
+        Get.snackbar(
+          'Error',
+          'Failed to delete community.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       debugPrint("CommunityController.deleteCommunity error: $e");
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -392,12 +447,24 @@ class CommunityController extends GetxController {
         );
         fetchCommunities();
       } else {
-        Get.snackbar('Error', 'Failed to create community.');
+        Get.snackbar(
+          'Error',
+          'Failed to create community.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       isLoading.value = false;
       debugPrint("CommunityController.createCommunity error: $e");
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -459,13 +526,25 @@ class CommunityController extends GetxController {
         fetchCommunities();
         return true;
       } else {
-        Get.snackbar('Error', 'Failed to update community.');
+        Get.snackbar(
+          'Error',
+          'Failed to update community.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.error,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
       isLoading.value = false;
       debugPrint("CommunityController.updateCommunity error: $e");
-      Get.snackbar('Error', 'An error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.error,
+        colorText: Colors.white,
+      );
       return false;
     }
   }

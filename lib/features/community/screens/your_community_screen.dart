@@ -6,6 +6,7 @@ import '../../progress/controllers/progress_controller.dart';
 import '../../progress/screens/leaderboard_screen.dart';
 import '../../settings/controllers/settings_controller.dart';
 import '../../subscription/screens/select_plan_screen.dart';
+import '../../subscription/controllers/subscription_controller.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/edit_community_bottom_sheet.dart';
 
@@ -476,9 +477,12 @@ class YourCommunityScreen extends StatelessWidget {
                       label: 'delete_community'.tr,
                       icon: Icons.delete_outline,
                       isDelete: true,
-                      onTap: () {
-                        final settingsController = Get.find<SettingsController>();
-                        if (!settingsController.isPremium.value) {
+                      onTap: () async {
+                        final subController = Get.isRegistered<SubscriptionController>()
+                            ? Get.find<SubscriptionController>()
+                            : Get.put(SubscriptionController());
+                        final isPrem = await subController.refreshAndVerifyPremium();
+                        if (!isPrem) {
                           Get.to(() => const SelectPlanScreen());
                           Get.snackbar(
                             'Premium Required',
@@ -506,9 +510,12 @@ class YourCommunityScreen extends StatelessWidget {
                       label: 'leave_community'.tr,
                       icon: Icons.exit_to_app,
                       isDelete: false,
-                      onTap: () {
-                        final settingsController = Get.find<SettingsController>();
-                        if (!settingsController.isPremium.value) {
+                      onTap: () async {
+                        final subController = Get.isRegistered<SubscriptionController>()
+                            ? Get.find<SubscriptionController>()
+                            : Get.put(SubscriptionController());
+                        final isPrem = await subController.refreshAndVerifyPremium();
+                        if (!isPrem) {
                           Get.to(() => const SelectPlanScreen());
                           Get.snackbar(
                             'Premium Required',

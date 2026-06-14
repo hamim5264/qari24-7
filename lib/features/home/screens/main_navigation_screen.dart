@@ -29,7 +29,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() {
       _selectedIndex = index;
     });
-    if (index == 1) {
+    if (index == 0) {
+      refreshAllHomeData();
+    } else if (index == 1) {
       if (Get.isRegistered<LibraryController>()) {
         Get.find<LibraryController>().fetchLibrary();
       }
