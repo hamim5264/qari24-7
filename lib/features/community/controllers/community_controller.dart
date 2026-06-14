@@ -177,7 +177,8 @@ class CommunityController extends GetxController {
             photoUrl = 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(nameVal)}&background=0D5C3A&color=fff&format=png';
           }
 
-          final statusVal = isMemberVal ? 'joined' : 'none';
+          final joinRequestStatus = json['join_request_status'] as String? ?? 'none';
+          final statusVal = isMemberVal ? 'joined' : (joinRequestStatus == 'pending' ? 'pending' : 'none');
 
           final comm = CommunityModel(
             id: idVal,
@@ -238,16 +239,33 @@ class CommunityController extends GetxController {
     }
   }
 
-  void cancelJoinRequest(CommunityModel community) {
-    community.status.value = 'none';
-    Get.snackbar(
-      'Community',
-      'Join request for ${community.name.value} cancelled.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.grey.shade800,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
-    );
+  Future<void> cancelJoinRequest(CommunityModel community) async {
+    try {
+      final commId = int.tryParse(community.id);
+      if (commId == null) return;
+      final body = {'community': commId};
+      final response = await _networkService.delete(
+        '/community/join-community/',
+        data: body,
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        community.status.value = 'none';
+        Get.snackbar(
+          'Community',
+          'Join request for ${community.name.value} cancelled.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.grey.shade800,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+        fetchCommunities();
+      } else {
+        Get.snackbar('Error', 'Failed to cancel join request.');
+      }
+    } catch (e) {
+      debugPrint("CommunityController.cancelJoinRequest error: $e");
+      Get.snackbar('Error', 'An error occurred: $e');
+    }
   }
 
   Future<void> leaveCommunity(CommunityModel community) async {

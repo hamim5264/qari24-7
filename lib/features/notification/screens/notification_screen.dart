@@ -376,6 +376,11 @@ class NotificationScreen extends StatelessWidget {
         iconColor = const Color(0xFF2DD4BF);
         iconBgColor = const Color(0xFF2DD4BF).withValues(alpha: 0.1);
         break;
+      case 'join_request':
+        iconData = Icons.person_add_rounded;
+        iconColor = const Color(0xFF10B981);
+        iconBgColor = const Color(0xFF10B981).withValues(alpha: 0.1);
+        break;
       default:
         iconData = Icons.notifications_none_rounded;
         iconColor = AppColors.primary;
@@ -469,19 +474,127 @@ class NotificationScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: Text(
-                            notification.descKey.tr,
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 13,
-                              height: 1.4,
-                              color: isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondaryLight,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                notification.descKey.tr,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  height: 1.4,
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                              if (notification.type == 'join_request') ...[
+                                const SizedBox(height: 12),
+                                Obx(() {
+                                  final action = notification.actionStatus.value;
+                                  if (action == 'approved') {
+                                    return const Row(
+                                      children: [
+                                        Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 16),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Approved',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF10B981),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  } else if (action == 'declined') {
+                                    return const Row(
+                                      children: [
+                                        Icon(Icons.cancel_rounded, color: AppColors.error, size: 16),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Declined',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.error,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  } else if (!isRead) {
+                                    final joinReqIdVal = notification.extraData?['join_request_id'];
+                                    final int? joinRequestId = joinReqIdVal != null
+                                        ? int.tryParse(joinReqIdVal.toString())
+                                        : null;
+
+                                    if (joinRequestId != null) {
+                                      return Row(
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () => controller.respondToJoinRequest(
+                                              notification.id,
+                                              joinRequestId,
+                                              'approve',
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF0D5C3A),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                              minimumSize: Size.zero,
+                                            ),
+                                            child: const Text(
+                                              'Approve',
+                                              style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          OutlinedButton(
+                                            onPressed: () => controller.respondToJoinRequest(
+                                              notification.id,
+                                              joinRequestId,
+                                              'decline',
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              side: BorderSide(
+                                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                              minimumSize: Size.zero,
+                                            ),
+                                            child: Text(
+                                              'Decline',
+                                              style: TextStyle(
+                                                fontFamily: 'Inter',
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDark ? Colors.white70 : Colors.black87,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  }
+                                  return const SizedBox.shrink();
+                                }),
+                              ],
+                            ],
                           ),
                         ),
-                        if (!isRead) ...[
+                        if (!isRead && notification.type != 'join_request') ...[
                           const SizedBox(width: 10),
                           Container(
                             width: 8,

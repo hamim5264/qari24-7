@@ -11,6 +11,7 @@ class NotificationModel {
   final int? libraryVerse;
   final Map<String, dynamic>? extraData;
   final String? createdAt;
+  final RxString actionStatus;
 
   NotificationModel({
     required this.id,
@@ -23,7 +24,9 @@ class NotificationModel {
     this.libraryVerse,
     this.extraData,
     this.createdAt,
-  }) : isRead = isRead.obs;
+    String actionStatus = '',
+  }) : isRead = isRead.obs,
+       actionStatus = actionStatus.obs;
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     final rawId = json['id'];
@@ -59,6 +62,7 @@ class NotificationModel {
           json['extra_data'] as Map<String, dynamic>? ??
           json['extraData'] as Map<String, dynamic>?,
       createdAt: created,
+      actionStatus: json['actionStatus'] as String? ?? '',
     );
   }
 
@@ -74,6 +78,7 @@ class NotificationModel {
       'library_verse': libraryVerse,
       'extra_data': extraData,
       'created_at': createdAt,
+      'actionStatus': actionStatus.value,
     };
   }
 

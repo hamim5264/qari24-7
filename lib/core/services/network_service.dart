@@ -154,4 +154,8 @@ class NetworkService extends get_x.GetxService {
   Future<Response> put(String path, {dynamic data}) async {
     return await dio.put(path, data: data);
   }
+
+  Future<Response> delete(String path, {dynamic data}) async {
+    return await dio.delete(path, data: data);
+  }
 }
