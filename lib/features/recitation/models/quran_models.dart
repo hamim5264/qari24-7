@@ -10,14 +10,60 @@ class Ayah {
 
   Ayah({
     required this.number,
-    required this.text,
+    required String text,
     required this.numberInSurah,
     required this.textTranslation,
     required this.page,
     required this.juz,
     this.isHidden = false,
     this.tajweedSpans,
-  });
+  }) : text = cleanQuranicText(stripBismillahPrefix(text, numberInSurah));
+
+  static String normalizeArabicSimple(String text) {
+    if (text.isEmpty) return "";
+    var normalized = text.toLowerCase();
+    normalized = normalized.replaceAll('\u0649\u0670', '\u0649'); // ىٰ -> ى
+    normalized = normalized.replaceAll('\u0670', '\u0627');
+    normalized = normalized.replaceAll(RegExp(r'[a-zA-Z0-9]'), '');
+    final tashkeel = RegExp(r'[\u064B-\u0652\u0653\u0654\u0655\u0640]');
+    normalized = normalized.replaceAll(tashkeel, '');
+    normalized = normalized.replaceAll(RegExp(r'[إأآٱ]'), 'ا');
+    normalized = normalized.replaceAll('ى', 'ي');
+    normalized = normalized.replaceAll('ی', 'ي');
+    normalized = normalized.replaceAll('ک', 'ك');
+    normalized = normalized.replaceAll('ة', 'ه');
+    normalized = normalized.replaceAll(RegExp(r'[^\u0621-\u064A\s]'), '');
+    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ');
+    var words = normalized.split(' ');
+    for (int i = 0; i < words.length; i++) {
+      if (words[i] == 'الرحمان') {
+        words[i] = 'الرحمن';
+      }
+    }
+    return words.join(' ').trim();
+  }
+
+  static String stripBismillahPrefix(String text, int numberInSurah) {
+    if (numberInSurah == 1) {
+      final words = text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+      if (words.length > 4) {
+        final first4Normalized = words.take(4).map(normalizeArabicSimple).toList();
+        if (first4Normalized[0] == "بسم" &&
+            first4Normalized[1] == "الله" &&
+            first4Normalized[2] == "الرحمن" &&
+            first4Normalized[3] == "الرحيم") {
+          return words.skip(4).join(' ');
+        }
+      }
+    }
+    return text;
+  }
+
+  static String cleanQuranicText(String text) {
+    if (text.isEmpty) return text;
+    // Remove spaces before Arabic combining diacritics and superscript alef (e.g. ٱلصِّرَ ٰطَ)
+    return text.replaceAll(RegExp(r'\s+(?=[\u064B-\u065F\u0670])'), '');
+  }
 
   factory Ayah.fromJson(Map<String, dynamic> json, String translation) {
     return Ayah(

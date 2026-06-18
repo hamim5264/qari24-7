@@ -9,6 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import '../models/book_model.dart';
 import '../../../core/services/network_service.dart';
+import '../screens/voice_search_bottom_sheet.dart';
+
 
 class LibraryController extends GetxController {
   final RxList<LibraryItemModel> items = <LibraryItemModel>[].obs;
@@ -27,6 +29,8 @@ class LibraryController extends GetxController {
   final SpeechToText _speechToText = SpeechToText();
   final RxBool isSpeechInitialized = false.obs;
   final RxBool isListening = false.obs;
+  final RxString voiceSearchText = ''.obs;
+
 
   @override
   void onInit() {
@@ -40,6 +44,8 @@ class LibraryController extends GetxController {
     // Avoid disposing controllers to prevent GetX race conditions
     super.onClose();
   }
+
+  DateTime? _lastFetchTime;
 
   Future<void> _initPreferencesAndLoad() async {
     _prefs = await SharedPreferences.getInstance();
@@ -76,15 +82,20 @@ class LibraryController extends GetxController {
     }
 
     // Background refresh
-    await fetchLibrary();
-    isLoading.value = false;
+    fetchLibrary();
   }
 
   /// Fetch library items from backend API
-  Future<void> fetchLibrary() async {
+  Future<void> fetchLibrary({bool force = false}) async {
+    if (!force && _lastFetchTime != null && DateTime.now().difference(_lastFetchTime!) < const Duration(minutes: 5)) {
+      debugPrint("Library fetched recently. Skipping network fetch.");
+      isLoading.value = false;
+      return;
+    }
     try {
       final response = await _networkService.get('/library/list-library/');
       if (response.statusCode == 200 || response.statusCode == 201) {
+        _lastFetchTime = DateTime.now();
         final Map<String, dynamic> data = response.data;
         final List<LibraryItemModel> loadedItems = [];
 
@@ -148,6 +159,8 @@ class LibraryController extends GetxController {
           colorText: Colors.white,
         );
       }
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -251,6 +264,28 @@ class LibraryController extends GetxController {
     return '${appDir.path}/library/${item.id}.$ext';
   }
 
+  Future<void> startListening() async {
+    searchTextController.clear();
+    searchQuery.value = '';
+    voiceSearchText.value = '';
+    applyFilters();
+
+    await _speechToText.listen(
+      onResult: (result) {
+        voiceSearchText.value = result.recognizedWords;
+        searchTextController.text = result.recognizedWords;
+        searchBooks(result.recognizedWords);
+      },
+    );
+  }
+
+  Future<void> stopListening() async {
+    if (_speechToText.isListening) {
+      await _speechToText.stop();
+    }
+    isListening.value = false;
+  }
+
   Future<void> triggerVoiceSearch() async {
     // 1. Request microphone permission
     final status = await Permission.microphone.request();
@@ -279,6 +314,9 @@ class LibraryController extends GetxController {
           onError: (errorNotification) {
             debugPrint('Speech error: $errorNotification');
             isListening.value = false;
+            if (Get.isBottomSheetOpen ?? false) {
+              Get.back();
+            }
             Get.snackbar(
               'Voice Search Error',
               errorNotification.errorMsg,
@@ -292,32 +330,16 @@ class LibraryController extends GetxController {
       }
 
       if (isSpeechInitialized.value) {
-        if (_speechToText.isListening) {
-          await _speechToText.stop();
-          isListening.value = false;
-        } else {
-          searchTextController.clear();
-          searchQuery.value = '';
-          applyFilters();
-
-          // Show floating snackbar that indicates listening
-          Get.snackbar(
-            'Voice Search',
-            'Listening... speak now',
-            snackPosition: SnackPosition.BOTTOM,
-            showProgressIndicator: true,
-            duration: const Duration(seconds: 5),
-            backgroundColor: Colors.black87,
-            colorText: Colors.white,
-          );
-
-          await _speechToText.listen(
-            onResult: (result) {
-              searchTextController.text = result.recognizedWords;
-              searchBooks(result.recognizedWords);
-            },
-          );
-        }
+        // Show the voice search bottom sheet
+        startListening();
+        Get.bottomSheet(
+          VoiceSearchBottomSheet(controller: this),
+          isDismissible: true,
+          enableDrag: true,
+          backgroundColor: Colors.transparent,
+        ).then((_) {
+          stopListening();
+        });
       } else {
         Get.snackbar(
           'Not Supported',

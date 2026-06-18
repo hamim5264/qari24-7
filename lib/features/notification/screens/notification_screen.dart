@@ -268,6 +268,9 @@ class NotificationScreen extends StatelessWidget {
     final yesterdayList = notifications
         .where((n) => n.dayCategory == 'yesterday')
         .toList();
+    final olderList = notifications
+        .where((n) => n.dayCategory != 'today' && n.dayCategory != 'yesterday')
+        .toList();
 
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -295,6 +298,19 @@ class NotificationScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...yesterdayList.map(
+            (n) => _buildNotificationCard(n, controller, isDark),
+          ),
+          const SizedBox(height: 24),
+        ],
+        if (olderList.isNotEmpty) ...[
+          _buildSectionHeader(
+            title: 'earlier'.tr,
+            showMarkAll: olderList.any((n) => !n.isRead.value),
+            onMarkAllPressed: () => controller.markSectionAsRead('older'),
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+          ...olderList.map(
             (n) => _buildNotificationCard(n, controller, isDark),
           ),
           const SizedBox(height: 24),

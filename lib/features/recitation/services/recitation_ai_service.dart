@@ -34,9 +34,16 @@ class RecitationAIService {
 
     var normalized = text.toLowerCase();
 
+    // 1. Handle Ya Maqsura followed by superscript alef (e.g. تَرَىٰ) -> normalize to just Ya/Alef Maqsura
+    normalized = normalized.replaceAll('\u0649\u0670', '\u0649'); // ىٰ -> ى
+
+    // 2. Replace other superscript alefs (\u0670) with normal alef (\u0627)
+    normalized = normalized.replaceAll('\u0670', '\u0627');
+
     normalized = normalized.replaceAll(RegExp(r'[a-zA-Z0-9]'), '');
 
-    final tashkeel = RegExp(r'[\u064B-\u0652\u0653\u0654\u0655\u0670\u0640]');
+    // Tashkeel
+    final tashkeel = RegExp(r'[\u064B-\u0652\u0653\u0654\u0655\u0640]');
     normalized = normalized.replaceAll(tashkeel, '');
 
     normalized = normalized.replaceAll(RegExp(r'[إأآٱ]'), 'ا');
@@ -51,6 +58,15 @@ class RecitationAIService {
     normalized = normalized.replaceAll(RegExp(r'[^\u0621-\u064A\s]'), '');
 
     normalized = normalized.replaceAll(RegExp(r'\s+'), ' ');
+
+    // 3. Specific exceptions like الرحمان -> الرحمن
+    var words = normalized.split(' ');
+    for (int i = 0; i < words.length; i++) {
+      if (words[i] == 'الرحمان') {
+        words[i] = 'الرحمن';
+      }
+    }
+    normalized = words.join(' ');
 
     return normalized.trim();
   }
@@ -84,6 +100,10 @@ class RecitationAIService {
     if (w1Clean == w2Clean) return true;
 
     final dist = getLevenshteinDistance(w1Clean, w2Clean);
+    final maxLength = max(w1Clean.length, w2Clean.length);
+    if (maxLength >= 7) {
+      return dist <= 2;
+    }
     return dist <= 1;
   }
 
@@ -298,7 +318,17 @@ class RecitationAIService {
       }
     }
 
-    int i = N;
+    // Find the row index 'bestI' in the final column M that maximizes the alignment score
+    int bestI = 0;
+    double maxScore = -double.maxFinite;
+    for (int i = 0; i <= N; i++) {
+      if (dp[i][M] > maxScore) {
+        maxScore = dp[i][M];
+        bestI = i;
+      }
+    }
+
+    int i = bestI;
     int j = M;
     final List<Map<String, dynamic>> alignment = [];
 
@@ -403,7 +433,7 @@ class RecitationAIService {
     if (_lastEmittedStatuses[curWordsCount - 1] == "correct" &&
         correctCount >= curWordsCount / 2) {
       shouldAdvance = true;
-    } else if (correctCount >= curWordsCount / 2) {
+    } else if (correctCount >= curWordsCount / 2 && maxAlignedExpIdx >= curWordsCount - 2) {
       final nextAyahListIndex = _currentAyahListIndex + 1;
       if (_fullSurahAyahs != null &&
           nextAyahListIndex < _fullSurahAyahs!.length) {

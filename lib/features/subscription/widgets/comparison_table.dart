@@ -14,6 +14,7 @@ class ComparisonTable extends StatelessWidget {
 
     final comparisonData = [
       {'feature': 'premium_feature_1'.tr, 'free': true, 'premium': true},
+      {'feature': 'listening_mode'.tr, 'free': true, 'premium': true},
       {'feature': 'premium_feature_2'.tr, 'free': false, 'premium': true},
       {'feature': 'premium_feature_3'.tr, 'free': false, 'premium': true},
       {'feature': 'premium_feature_4'.tr, 'free': false, 'premium': true},

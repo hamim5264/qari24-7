@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../models/book_model.dart';
+import '../controllers/library_controller.dart';
 import '../../../core/constants/app_colors.dart';
 
 class PdfReaderScreen extends StatefulWidget {
@@ -24,11 +25,49 @@ class _PdfReaderScreenState extends State<PdfReaderScreen> {
   final RxInt _currentPage = 1.obs;
   final RxInt _pageCount = 0.obs;
   final RxBool _isLoading = true.obs;
+  final RxDouble _downloadProgress = 0.0.obs;
+  final RxBool _isDownloading = false.obs;
 
   @override
   void initState() {
     super.initState();
     _pdfViewerController = PdfViewerController();
+    _checkAndDownloadFile();
+  }
+
+  Future<void> _checkAndDownloadFile() async {
+    final File localFile = File(widget.localPath);
+    if (widget.item.isDownloaded.value && localFile.existsSync()) {
+      _isLoading.value = true;
+      _isDownloading.value = false;
+      return;
+    }
+
+    _isDownloading.value = true;
+    _isLoading.value = false;
+
+    try {
+      final controller = Get.isRegistered<LibraryController>()
+          ? Get.find<LibraryController>()
+          : Get.put(LibraryController());
+
+      // Bind local progress to item progress
+      widget.item.downloadProgress.listen((progress) {
+        _downloadProgress.value = progress;
+      });
+
+      await controller.downloadItem(widget.item);
+
+      if (widget.item.isDownloaded.value && localFile.existsSync()) {
+        _isDownloading.value = false;
+        _isLoading.value = true;
+      } else {
+        throw Exception("Download failed or file not found.");
+      }
+    } catch (e) {
+      _isDownloading.value = false;
+      _showErrorSnackbar("Failed to download PDF: $e");
+    }
   }
 
   @override
@@ -46,8 +85,6 @@ class _PdfReaderScreenState extends State<PdfReaderScreen> {
     final textColor = isDark ? Colors.white : Colors.black87;
 
     final File localFile = File(widget.localPath);
-    final bool useLocalFile =
-        widget.item.isDownloaded.value && localFile.existsSync();
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -84,50 +121,57 @@ class _PdfReaderScreenState extends State<PdfReaderScreen> {
       ),
       body: Stack(
         children: [
-          useLocalFile
-              ? SfPdfViewer.file(
-                  localFile,
-                  controller: _pdfViewerController,
-                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                    _pageCount.value = details.document.pages.count;
-                    _isLoading.value = false;
-                  },
-                  onPageChanged: (PdfPageChangedDetails details) {
-                    _currentPage.value = details.newPageNumber;
-                  },
-                  onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
-                    _isLoading.value = false;
-                    _showErrorSnackbar(details.description);
-                  },
-                )
-              : widget.item.fileUrl != null && widget.item.fileUrl!.isNotEmpty
-              ? SfPdfViewer.network(
-                  widget.item.fileUrl!,
-                  controller: _pdfViewerController,
-                  onDocumentLoaded: (PdfDocumentLoadedDetails details) {
-                    _pageCount.value = details.document.pages.count;
-                    _isLoading.value = false;
-                  },
-                  onPageChanged: (PdfPageChangedDetails details) {
-                    _currentPage.value = details.newPageNumber;
-                  },
-                  onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
-                    _isLoading.value = false;
-                    _showErrorSnackbar(details.description);
-                  },
-                )
-              : const Center(
-                  child: Text(
-                    "No file URL available",
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
           Obx(() {
-            if (!_isLoading.value) return const SizedBox.shrink();
+            if (_isDownloading.value) {
+              return const SizedBox.shrink();
+            }
+            if (!localFile.existsSync()) {
+              return const Center(
+                child: Text(
+                  "Preparing document...",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              );
+            }
+            return SfPdfViewer.file(
+              localFile,
+              controller: _pdfViewerController,
+              enableTextSelection: false,
+              onDocumentLoaded: (PdfDocumentLoadedDetails details) {
+                _pageCount.value = details.document.pages.count;
+                _isLoading.value = false;
+              },
+              onPageChanged: (PdfPageChangedDetails details) {
+                _currentPage.value = details.newPageNumber;
+              },
+              onDocumentLoadFailed: (PdfDocumentLoadFailedDetails details) {
+                _isLoading.value = false;
+                _showErrorSnackbar(details.description);
+              },
+            );
+          }),
+          Obx(() {
+            if (!_isDownloading.value && !_isLoading.value) return const SizedBox.shrink();
             return Container(
               color: bgColor.withValues(alpha: 0.5),
-              child: const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(color: AppColors.primary),
+                    if (_isDownloading.value) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        "Downloading... ${(_downloadProgress.value * 100).toInt()}%",
+                        style: TextStyle(
+                          color: textColor,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             );
           }),

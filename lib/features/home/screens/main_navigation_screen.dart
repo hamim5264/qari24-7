@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/app_colors.dart';
 import 'home_screen.dart';
@@ -38,6 +39,51 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     }
   }
 
+  Future<bool?> _showExitConfirmationDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Exit App',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to exit QARI 24/7?',
+          style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.black54,
+            fontFamily: 'Inter',
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontFamily: 'Inter', fontWeight: FontWeight.bold),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Exit',
+              style: TextStyle(color: AppColors.error, fontFamily: 'Inter', fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -47,8 +93,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const activeColor = AppColors.primary;
     final inactiveColor = isDark ? Colors.grey.shade600 : Colors.grey.shade400;
 
-    return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldExit = await _showExitConfirmationDialog(context);
+        if (shouldExit == true) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -93,6 +148,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
       ),
+     ),
     );
   }
 }

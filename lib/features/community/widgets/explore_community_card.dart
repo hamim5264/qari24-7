@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/community_controller.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../settings/controllers/settings_controller.dart';
 import '../../subscription/screens/select_plan_screen.dart';
 import '../../subscription/controllers/subscription_controller.dart';
 

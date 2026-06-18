@@ -22,308 +22,316 @@ class RecitationScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textGrey = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
 
-    return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.backgroundDark
-          : AppColors.backgroundLight,
-
-      appBar: AppBar(
-        elevation: 0,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          controller.resetRecitationState();
+        }
+      },
+      child: Scaffold(
         backgroundColor: isDark
-            ? AppColors.surfaceDark
-            : AppColors.surfaceLight,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        title: GestureDetector(
-          onTap: () {
-            Get.bottomSheet(const SurahSearchSheet(), isScrollControlled: true);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C1E) : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade300,
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Obx(() {
-                    final surahName =
-                        controller.currentSurah.value?.englishName ??
-                        'Al-Fatihah';
-                    final hasAyahs =
-                        controller.currentSurah.value?.ayahs.isNotEmpty ??
-                        false;
-                    final page = hasAyahs
-                        ? controller.currentSurah.value!.ayahs.first.page
-                        : 1;
-                    return Text(
-                      '$surahName | PG $page',
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.search,
-                  size: 13,
-                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          Obx(() {
-            final isSaved = controller.isSurahSaved(
-              controller.currentSurahNumber.value,
-            );
-            return IconButton(
-              icon: Icon(
-                isSaved
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_border_rounded,
-                color: isSaved
-                    ? AppColors.primary
-                    : (isDark ? Colors.white : Colors.black87),
-              ),
-              onPressed: () => controller.toggleSaveSurah(
-                controller.currentSurahNumber.value,
-              ),
-            );
-          }),
-
-          IconButton(
+            ? AppColors.backgroundDark
+            : AppColors.backgroundLight,
+  
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: isDark
+              ? AppColors.surfaceDark
+              : AppColors.surfaceLight,
+          leading: IconButton(
             icon: Icon(
-              Icons.settings_outlined,
+              Icons.arrow_back,
               color: isDark ? Colors.white : Colors.black87,
             ),
-            onPressed: () {
-              final settingsController = Get.find<SettingsController>();
-              if (!settingsController.isPremium.value) {
-                Get.to(() => const GoPremiumScreen());
-              } else {
-                Get.bottomSheet(
-                  const AudioSettingsBottomSheet(),
-                  isScrollControlled: true,
-                );
-              }
-            },
+            onPressed: () => Get.back(),
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-
-      body: GestureDetector(
-        onTap: () {
-          controller.showMicCapsule.value = false;
-          controller.showEyeCapsule.value = false;
-        },
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Obx(() {
-                try {
-                  if (controller.isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    );
-                  }
-
-                  final surah = controller.currentSurah.value;
-                  if (surah == null) {
-                    return Center(
-                      child: Text(
-                        'Failed to load Surah data.',
-                        style: TextStyle(color: textGrey),
-                      ),
-                    );
-                  }
-
-                  final hasAyahs = surah.ayahs.isNotEmpty;
-                  final firstPage = hasAyahs ? surah.ayahs.first.page : 1;
-                  final firstJuz = hasAyahs ? surah.ayahs.first.juz : 1;
-
-                  return Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 20,
+          title: GestureDetector(
+            onTap: () {
+              Get.bottomSheet(const SurahSearchSheet(), isScrollControlled: true);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1C1C1E) : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade300,
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Obx(() {
+                      final surahName =
+                          controller.currentSurah.value?.englishName ??
+                          'Al-Fatihah';
+                      final hasAyahs =
+                          controller.currentSurah.value?.ayahs.isNotEmpty ??
+                          false;
+                      final page = hasAyahs
+                          ? controller.currentSurah.value!.ayahs.first.page
+                          : 1;
+                      return Text(
+                        '$surahName | PG $page',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
-                        color: isDark
-                            ? const Color(0xFF101010)
-                            : Colors.grey.shade50,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Page $firstPage • Juz $firstJuz",
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: textGrey,
-                              ),
-                            ),
-                            Text(
-                              "${surah.numberOfAyahs} Ayahs • ${surah.revelationType}",
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: textGrey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Expanded(child: _buildVersesContent(context, surah)),
-
-                      const SizedBox(height: 90),
-                    ],
+                      );
+                    }),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.search,
+                    size: 13,
+                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            Obx(() {
+              final isSaved = controller.isSurahSaved(
+                controller.currentSurahNumber.value,
+              );
+              return IconButton(
+                icon: Icon(
+                  isSaved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  color: isSaved
+                      ? AppColors.primary
+                      : (isDark ? Colors.white : Colors.black87),
+                ),
+                onPressed: () => controller.toggleSaveSurah(
+                  controller.currentSurahNumber.value,
+                ),
+              );
+            }),
+  
+            IconButton(
+              icon: Icon(
+                Icons.settings_outlined,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+              onPressed: () {
+                final settingsController = Get.find<SettingsController>();
+                if (!settingsController.isPremium.value) {
+                  Get.to(() => const GoPremiumScreen());
+                } else {
+                  Get.bottomSheet(
+                    const AudioSettingsBottomSheet(),
+                    isScrollControlled: true,
                   );
-                } catch (e, stack) {
-                  debugPrint("CRITICAL ERROR IN MAIN BODY OBX: $e\n$stack");
-                  controller.isLoading.value;
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Scrollbar(
-                        child: SingleChildScrollView(
-                          child: Text(
-                            'Main body error: $e\n\n$stack',
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+  
+        body: GestureDetector(
+          onTap: () {
+            controller.showMicCapsule.value = false;
+            controller.showEyeCapsule.value = false;
+          },
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Obx(() {
+                  try {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      );
+                    }
+  
+                    final surah = controller.currentSurah.value;
+                    if (surah == null) {
+                      return Center(
+                        child: Text(
+                          'Failed to load Surah data.',
+                          style: TextStyle(color: textGrey),
+                        ),
+                      );
+                    }
+  
+                    final hasAyahs = surah.ayahs.isNotEmpty;
+                    final firstPage = hasAyahs ? surah.ayahs.first.page : 1;
+                    final firstJuz = hasAyahs ? surah.ayahs.first.juz : 1;
+  
+                    return Column(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 20,
+                          ),
+                          color: isDark
+                              ? const Color(0xFF101010)
+                              : Colors.grey.shade50,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Page $firstPage • Juz $firstJuz",
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: textGrey,
+                                ),
+                              ),
+                              Text(
+                                "${surah.numberOfAyahs} Ayahs • ${surah.revelationType}",
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: textGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+  
+                        Expanded(child: _buildVersesContent(context, surah)),
+  
+                        const SizedBox(height: 90),
+                      ],
+                    );
+                  } catch (e, stack) {
+                    debugPrint("CRITICAL ERROR IN MAIN BODY OBX: $e\n$stack");
+                    controller.isLoading.value;
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Scrollbar(
+                          child: SingleChildScrollView(
+                            child: Text(
+                              'Main body error: $e\n\n$stack',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ),
                       ),
+                    );
+                  }
+                }),
+              ),
+  
+              Positioned(
+                top: 12,
+                left: 20,
+                right: 20,
+                child: Obx(() {
+                  if (!controller.mistakeDetectionActive.value ||
+                      controller.isRecitingMic.value) {
+                    return const SizedBox.shrink();
+                  }
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: controller.detectedMistakeAyahs.isNotEmpty
+                          ? Colors.red.shade900.withValues(alpha: 0.95)
+                          : AppColors.primary.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          controller.detectedMistakeAyahs.isNotEmpty
+                              ? Icons.error_outline
+                              : Icons.mic_none_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            controller.mistakeStatusMessage.value,
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        if (controller.detectedMistakeAyahs.isNotEmpty)
+                          TextButton(
+                            onPressed: () => controller.stopMistakeDetection(),
+                            child: const Text(
+                              'RESET',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   );
-                }
-              }),
-            ),
-
-            Positioned(
-              top: 12,
-              left: 20,
-              right: 20,
-              child: Obx(() {
-                if (!controller.mistakeDetectionActive.value ||
-                    controller.isRecitingMic.value) {
-                  return const SizedBox.shrink();
-                }
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: controller.detectedMistakeAyahs.isNotEmpty
-                        ? Colors.red.shade900.withValues(alpha: 0.95)
-                        : AppColors.primary.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        controller.detectedMistakeAyahs.isNotEmpty
-                            ? Icons.error_outline
-                            : Icons.mic_none_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          controller.mistakeStatusMessage.value,
-                          style: const TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      if (controller.detectedMistakeAyahs.isNotEmpty)
-                        TextButton(
-                          onPressed: () => controller.stopMistakeDetection(),
-                          child: const Text(
-                            'RESET',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              }),
-            ),
-
-            Positioned(
-              bottom: 84,
-              left: MediaQuery.of(context).size.width / 2 - 60,
-              child: Obx(() {
-                if (!controller.showMicCapsule.value) {
-                  return const SizedBox.shrink();
-                }
-                return _buildMicCapsule(context, controller);
-              }),
-            ),
-
-            Positioned(
-              bottom: 84,
-              right: 24,
-              child: Obx(() {
-                if (!controller.showEyeCapsule.value) {
-                  return const SizedBox.shrink();
-                }
-                return _buildEyeCapsule(context, controller);
-              }),
-            ),
-
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: _buildBottomDock(context, controller),
-            ),
-          ],
+                }),
+              ),
+  
+              Positioned(
+                bottom: 84,
+                left: MediaQuery.of(context).size.width / 2 - 60,
+                child: Obx(() {
+                  if (!controller.showMicCapsule.value) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildMicCapsule(context, controller);
+                }),
+              ),
+  
+              Positioned(
+                bottom: 84,
+                right: 24,
+                child: Obx(() {
+                  if (!controller.showEyeCapsule.value) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildEyeCapsule(context, controller);
+                }),
+              ),
+  
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: _buildBottomDock(context, controller),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -652,13 +660,8 @@ class RecitationScreen extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () {
-              final settingsController = Get.find<SettingsController>();
-              if (!settingsController.isPremium.value) {
-                Get.to(() => const GoPremiumScreen());
-              } else {
-                controller.showMicCapsule.value = false;
-                controller.playAudioForRange();
-              }
+              controller.showMicCapsule.value = false;
+              controller.playAudioForRange();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 8),

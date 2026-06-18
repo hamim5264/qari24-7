@@ -15,9 +15,9 @@ class AboutAppScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text(
-          'About QARI 24/7',
-          style: TextStyle(
+        title: Text(
+          'about_app'.tr,
+          style: const TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -60,9 +60,9 @@ class AboutAppScreen extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            const Text(
-              'Your 24/7 AI Quran Companion',
-              style: TextStyle(
+            Text(
+              'about_companion_subtitle'.tr,
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -71,7 +71,7 @@ class AboutAppScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Version 1.0.0',
+              '${'about_version'.tr} 1.0.0',
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
@@ -92,7 +92,7 @@ class AboutAppScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Our Mission',
+                    'about_mission_title'.tr,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 18,
@@ -102,7 +102,7 @@ class AboutAppScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'QARI 24/7 is designed to make Quran learning, memorization, and correction accessible to everyone around the world, anytime. By combining advanced AI speech recognition technology with interactive features, we help you recite correctly, maintain streaks, and grow closer to the Holy Quran daily.',
+                    'about_mission_desc'.tr,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -117,7 +117,7 @@ class AboutAppScreen extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Key Features',
+                'about_features_title'.tr,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 18,
@@ -129,27 +129,27 @@ class AboutAppScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildFeatureTile(
               icon: Icons.mic_rounded,
-              title: 'AI Speech Recognition',
-              description: 'Recite verses and receive instant audio evaluations, helping you identify pronunciation and tajweed mistakes.',
+              title: 'about_feature_ai_title'.tr,
+              description: 'about_feature_ai_desc'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 12),
             _buildFeatureTile(
               icon: Icons.local_fire_department_rounded,
-              title: 'Streaks & Learning Habits',
-              description: 'Stay motivated with daily reading streaks, reminders, and detailed statistics showing your progress.',
+              title: 'about_feature_streak_title'.tr,
+              description: 'about_feature_streak_desc'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 12),
             _buildFeatureTile(
               icon: Icons.people_alt_rounded,
-              title: 'Interactive Community',
-              description: 'Join virtual study circles, share insights, learn with others, and create custom local communities.',
+              title: 'about_feature_community_title'.tr,
+              description: 'about_feature_community_desc'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 40),
             Text(
-              '© ${DateTime.now().year} Qari 24/7. All rights reserved.',
+              '© ${DateTime.now().year} Qari 24/7. ${'about_copyright'.tr}',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Inter',
@@ -239,9 +239,9 @@ class HelpCenterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text(
-          'Help Center',
-          style: TextStyle(
+        title: Text(
+          'help_center'.tr,
+          style: const TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -272,9 +272,9 @@ class HelpCenterScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'How can we help you?',
-                    style: TextStyle(
+                  Text(
+                    'help_banner_title'.tr,
+                    style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -283,7 +283,7 @@ class HelpCenterScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Explore common questions or reach out directly to our support team.',
+                    'help_banner_subtitle'.tr,
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 14,
@@ -296,7 +296,7 @@ class HelpCenterScreen extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             Text(
-              'Frequently Asked Questions',
+              'help_faq_title'.tr,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 18,
@@ -306,31 +306,31 @@ class HelpCenterScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildFAQTile(
-              question: 'How does the AI recitation correction work?',
-              answer: 'QARI 24/7 uses advanced speech analysis models optimized for Quranic Arabic. When you recite, our engine analyzes your voice against correct Tajweed and word patterns, pointing out mistakes or areas for improvement.',
+              question: 'help_faq_q1'.tr,
+              answer: 'help_faq_a1'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 12),
             _buildFAQTile(
-              question: 'My premium status disappeared. How do I restore it?',
-              answer: 'Go to your Profile, tap on the "Restore Purchases" button below the subscription status. This will query the App Store or Google Play Store for your active subscriptions and sync them back to your account.',
+              question: 'help_faq_q2'.tr,
+              answer: 'help_faq_a2'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 12),
             _buildFAQTile(
-              question: 'How do I create or join a community group?',
-              answer: 'Navigate to the Community tab in the bottom bar, where you can see existing groups or create your own by setting a group name, photo, and rules. You can then invite others to build recitation habits together.',
+              question: 'help_faq_q3'.tr,
+              answer: 'help_faq_a3'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 12),
             _buildFAQTile(
-              question: 'Can I use QARI 24/7 offline?',
-              answer: 'Core recitation tools and text reading can be accessed offline. However, AI voice recognition analysis and community syncing require a stable internet connection.',
+              question: 'help_faq_q4'.tr,
+              answer: 'help_faq_a4'.tr,
               isDark: isDark,
             ),
             const SizedBox(height: 28),
             Text(
-              'Still need help?',
+              'help_still_need_help'.tr,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 18,
@@ -370,7 +370,7 @@ class HelpCenterScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Email Support',
+                              'help_email_support'.tr,
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 16,
@@ -401,8 +401,8 @@ class HelpCenterScreen extends StatelessWidget {
                       onPressed: () {
                         Clipboard.setData(const ClipboardData(text: supportEmail));
                         Get.snackbar(
-                          'Success',
-                          'Email copied to clipboard!',
+                          'success_label'.tr,
+                          'help_email_copied'.tr,
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: AppColors.primary,
                           colorText: Colors.white,
@@ -416,9 +416,9 @@ class HelpCenterScreen extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Copy Email Address',
-                        style: TextStyle(
+                      child: Text(
+                        'help_copy_email'.tr,
+                        style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -495,9 +495,9 @@ class TermsOfServiceScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text(
-          'Terms of Service',
-          style: TextStyle(
+        title: Text(
+          'terms_service'.tr,
+          style: const TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -516,7 +516,7 @@ class TermsOfServiceScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Terms & Conditions',
+              'terms_title'.tr,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 22,
@@ -526,7 +526,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Last updated: June 14, 2026',
+              'terms_last_updated'.tr,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
@@ -535,38 +535,38 @@ class TermsOfServiceScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             _buildTermSection(
-              title: '1. Acceptance of Terms',
-              content: 'By downloading, installing, or using the QARI 24/7 mobile application, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use the application.',
+              title: 'terms_sec1_title'.tr,
+              content: 'terms_sec1_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildTermSection(
-              title: '2. User Accounts & Registration',
-              content: 'To use certain features of the application, including tracking progress and participating in communities, you must register for an account. You agree to provide accurate, current, and complete information and maintain the security of your password and credentials.',
+              title: 'terms_sec2_title'.tr,
+              content: 'terms_sec2_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildTermSection(
-              title: '3. Premium Subscriptions & Purchases',
-              content: 'QARI 24/7 offers a Premium subscription plan that grants access to advanced AI evaluation, exclusive stats, and community features. Subscriptions are billed through your App Store or Play Store account. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period.',
+              title: 'terms_sec3_title'.tr,
+              content: 'terms_sec3_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildTermSection(
-              title: '4. Acceptable Conduct',
-              content: 'You agree to use QARI 24/7 in a respectful manner. You must not upload harmful, profane, or inappropriate community content, attempt to disrupt the AI engine, copy source code, or violate local or international laws while using our service.',
+              title: 'terms_sec4_title'.tr,
+              content: 'terms_sec4_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildTermSection(
-              title: '5. Limitation of Liability',
-              content: 'QARI 24/7 and its affiliates are provided on an "as is" and "as available" basis. We do not guarantee that the application will be uninterrupted, secure, or error-free. We shall not be liable for any indirect, incidental, or consequential damages resulting from your use of the application.',
+              title: 'terms_sec5_title'.tr,
+              content: 'terms_sec5_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildTermSection(
-              title: '6. Contact Us',
-              content: 'If you have any questions about these Terms of Service, please contact us at: Thehub923community@gmail.com.',
+              title: 'terms_sec6_title'.tr,
+              content: 'terms_sec6_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
@@ -625,9 +625,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text(
-          'Privacy Policy',
-          style: TextStyle(
+        title: Text(
+          'privacy_policy'.tr,
+          style: const TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -646,7 +646,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Privacy Policy',
+              'privacy_title'.tr,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 22,
@@ -656,7 +656,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Last updated: June 14, 2026',
+              'privacy_last_updated'.tr,
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,
@@ -665,38 +665,38 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             _buildPrivacySection(
-              title: '1. Information We Collect',
-              content: 'We collect information you provide directly to us when you create an account, such as your username, email address, profile picture, and support requests. We also process audio recordings of your recitation for the sole purpose of real-time speech-to-text evaluation. Audio recordings are handled dynamically and are not stored permanently on our servers unless specified for learning history.',
+              title: 'privacy_sec1_title'.tr,
+              content: 'privacy_sec1_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildPrivacySection(
-              title: '2. How We Use Your Information',
-              content: 'We use the information we collect to provide, maintain, and improve the QARI 24/7 services. This includes analyzing your recitation to suggest corrections, personalizing your study streak metrics, facilitating community communications, processing subscriptions, and responding to feedback/support emails.',
+              title: 'privacy_sec2_title'.tr,
+              content: 'privacy_sec2_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildPrivacySection(
-              title: '3. Data Storage & Security',
-              content: 'We implement industry-standard security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction. We retain your account and learning data for as long as your account is active, or as needed to provide services. You can delete your account and all associated data at any time via the "Delete Account" option in the profile settings.',
+              title: 'privacy_sec3_title'.tr,
+              content: 'privacy_sec3_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildPrivacySection(
-              title: '4. Third-Party Services',
-              content: 'We may use third-party analytics and payment processors (e.g., Stripe, Google Play Services, Apple App Store) to process payments and measure app performance. These services adhere to their own privacy guidelines.',
+              title: 'privacy_sec4_title'.tr,
+              content: 'privacy_sec4_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildPrivacySection(
-              title: '5. Changes to This Policy',
-              content: 'We may update our Privacy Policy from time to time. Any changes will be posted on this screen, with the "Last updated" date revised accordingly. Your continued use of the app after updates indicates acceptance of the changes.',
+              title: 'privacy_sec5_title'.tr,
+              content: 'privacy_sec5_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),
             _buildPrivacySection(
-              title: '6. Contact Support',
-              content: 'If you have questions or concerns regarding this Privacy Policy or your data, contact us at: Thehub923community@gmail.com.',
+              title: 'privacy_sec6_title'.tr,
+              content: 'privacy_sec6_desc'.tr,
               bodyColor: bodyColor,
               titleColor: textTheme,
             ),

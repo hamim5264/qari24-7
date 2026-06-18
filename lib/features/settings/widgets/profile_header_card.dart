@@ -82,6 +82,8 @@ class ProfileHeaderCard extends StatelessWidget {
               children: [
                 Text(
                   name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 18,

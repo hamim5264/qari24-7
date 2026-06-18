@@ -161,6 +161,35 @@ class ProgressController extends GetxController {
   int get communityWeeklyCompleted => 325;
   int get communityWeeklyGoal => 500;
 
+  String _convertUtcSlotToLocal(String slotLabel) {
+    if (slotLabel == 'Now') return 'Now';
+
+    final match = RegExp(r'^(\d+)(AM|PM)$').firstMatch(slotLabel);
+    if (match == null) return slotLabel;
+
+    int hour = int.parse(match.group(1)!);
+    final amPm = match.group(2);
+
+    if (amPm == 'PM' && hour != 12) {
+      hour += 12;
+    } else if (amPm == 'AM' && hour == 12) {
+      hour = 0;
+    }
+
+    final offsetHours = DateTime.now().timeZoneOffset.inHours;
+    final localHour = (hour + offsetHours) % 24;
+
+    if (localHour == 0) {
+      return '12AM';
+    } else if (localHour == 12) {
+      return '12PM';
+    } else if (localHour > 12) {
+      return '${localHour - 12}PM';
+    } else {
+      return '${localHour}AM';
+    }
+  }
+
   Future<void> fetchProgress() async {
     isLoading.value = true;
     try {
@@ -232,7 +261,7 @@ class ProgressController extends GetxController {
 
         for (var key in orderedSlots) {
           final double valDouble = (slots[key] as num?)?.toDouble() ?? 0.0;
-          newLabels.add(key);
+          newLabels.add(period == 'daily' || period == '' ? _convertUtcSlotToLocal(key) : key);
           if (maxVal > 0) {
             newHeights.add(valDouble / maxVal);
           } else {

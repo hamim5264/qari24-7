@@ -141,16 +141,21 @@ class LibraryScreen extends StatelessWidget {
                           : Colors.grey.shade400,
                       size: 22,
                     ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        Icons.mic_none,
-                        color: isDark
-                            ? Colors.grey.shade500
-                            : Colors.grey.shade400,
-                        size: 22,
-                      ),
-                      onPressed: controller.triggerVoiceSearch,
-                    ),
+                    suffixIcon: Obx(() {
+                      final isListening = controller.isListening.value;
+                      return IconButton(
+                        icon: Icon(
+                          isListening ? Icons.mic : Icons.mic_none,
+                          color: isListening
+                              ? AppColors.primary
+                              : (isDark
+                                  ? Colors.grey.shade500
+                                  : Colors.grey.shade400),
+                          size: 22,
+                        ),
+                        onPressed: controller.triggerVoiceSearch,
+                      );
+                    }),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -172,25 +177,39 @@ class LibraryScreen extends StatelessWidget {
                   }
 
                   if (controller.filteredItems.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    return RefreshIndicator(
+                      onRefresh: () => controller.fetchLibrary(force: true),
+                      color: AppColors.primary,
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
                         children: [
-                          Icon(
-                            Icons.library_books_outlined,
-                            color: Colors.grey.shade600,
-                            size: 48,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No items found',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.4,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.library_books_outlined,
+                                    color: Colors.grey.shade600,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No items found',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -198,26 +217,32 @@ class LibraryScreen extends StatelessWidget {
                     );
                   }
 
-                  return GridView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(bottom: 24),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 20,
-                          childAspectRatio: 0.56,
-                        ),
-                    itemCount: controller.filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = controller.filteredItems[index];
-                      return _buildLibraryCard(
-                        context,
-                        item,
-                        controller,
-                        isDark,
-                      );
-                    },
+                  return RefreshIndicator(
+                    onRefresh: () => controller.fetchLibrary(force: true),
+                    color: AppColors.primary,
+                    child: GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.only(bottom: 24),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 20,
+                            childAspectRatio: 0.56,
+                          ),
+                      itemCount: controller.filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = controller.filteredItems[index];
+                        return _buildLibraryCard(
+                          context,
+                          item,
+                          controller,
+                          isDark,
+                        );
+                      },
+                    ),
                   );
                 }),
               ),

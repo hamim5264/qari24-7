@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../services/auth_api_service.dart';
 
+import '../../subscription/controllers/subscription_controller.dart';
+
 class AuthRepository extends GetxService {
   final isLogged = false.obs;
   final accessToken = "".obs;
@@ -63,6 +65,13 @@ class AuthRepository extends GetxService {
       refreshToken.value = refresh;
       currentUser.value = user;
       isLogged.value = true;
+
+      // Eagerly check and update the premium status
+      if (!Get.isRegistered<SubscriptionController>()) {
+        Get.put(SubscriptionController());
+      } else {
+        Get.find<SubscriptionController>().fetchSubscriptionDetails();
+      }
     } catch (e) {
       rethrow;
     }

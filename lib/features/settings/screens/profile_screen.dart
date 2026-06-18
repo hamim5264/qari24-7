@@ -343,26 +343,24 @@ class ProfileScreen extends StatelessWidget {
                 onPressed: () {
                   Get.dialog(
                     AlertDialog(
-                      title: const Text('Log Out'),
-                      content: const Text(
-                        'Are you sure you want to log out of QARI 24/7?',
-                      ),
+                      title: Text('logout_dialog_title'.tr),
+                      content: Text('logout_dialog_desc'.tr),
                       actions: [
                         TextButton(
                           onPressed: () => Get.back(),
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.primary,
                           ),
-                          child: const Text('Cancel'),
+                          child: Text('cancel'.tr),
                         ),
                         TextButton(
                           onPressed: () {
                             Get.back();
                             controller.logout();
                           },
-                          child: const Text(
-                            'Log Out',
-                            style: TextStyle(color: Colors.red),
+                          child: Text(
+                            'logout_dialog_btn'.tr,
+                            style: const TextStyle(color: Colors.red),
                           ),
                         ),
                       ],
@@ -428,7 +426,7 @@ class ProfileScreen extends StatelessWidget {
                         StatefulBuilder(
                           builder: (context, setState) {
                             return AlertDialog(
-                              title: const Text('Rate QARI 24/7'),
+                              title: Text('rate_dialog_title'.tr),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -460,10 +458,10 @@ class ProfileScreen extends StatelessWidget {
                                   const SizedBox(height: 12),
                                   TextField(
                                     controller: reviewController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Review (Optional)',
-                                      hintText: 'Tell us what you think...',
-                                      focusedBorder: UnderlineInputBorder(
+                                    decoration: InputDecoration(
+                                      labelText: 'rate_dialog_review_label'.tr,
+                                      hintText: 'rate_dialog_review_hint'.tr,
+                                      focusedBorder: const UnderlineInputBorder(
                                         borderSide: BorderSide(
                                           color: AppColors.primary,
                                         ),
@@ -479,7 +477,7 @@ class ProfileScreen extends StatelessWidget {
                                   style: TextButton.styleFrom(
                                     foregroundColor: Colors.red,
                                   ),
-                                  child: const Text('Cancel'),
+                                  child: Text('cancel'.tr),
                                 ),
                                 TextButton(
                                   onPressed: () async {
@@ -489,9 +487,9 @@ class ProfileScreen extends StatelessWidget {
                                       review: reviewController.text.trim(),
                                     );
                                   },
-                                  child: const Text(
-                                    'Submit',
-                                    style: TextStyle(
+                                  child: Text(
+                                    'rate_dialog_submit'.tr,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primary,
                                     ),
@@ -524,24 +522,24 @@ class ProfileScreen extends StatelessWidget {
                       final passwordController = TextEditingController();
                       Get.dialog(
                         AlertDialog(
-                          title: const Text(
-                            'Delete Account',
-                            style: TextStyle(color: Colors.red),
+                          title: Text(
+                            'delete_dialog_title'.tr,
+                            style: const TextStyle(color: Colors.red),
                           ),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Warning: This action is irreversible. All of your progress and settings will be permanently lost.',
+                              Text(
+                                'delete_dialog_warning'.tr,
                               ),
                               const SizedBox(height: 16),
                               TextField(
                                 controller: passwordController,
                                 obscureText: true,
-                                decoration: const InputDecoration(
-                                  labelText: 'Confirm Password',
-                                  focusedBorder: UnderlineInputBorder(
+                                decoration: InputDecoration(
+                                  labelText: 'delete_dialog_confirm_password'.tr,
+                                  focusedBorder: const UnderlineInputBorder(
                                     borderSide: BorderSide(color: Colors.red),
                                   ),
                                 ),
@@ -552,17 +550,17 @@ class ProfileScreen extends StatelessWidget {
                             TextButton(
                               onPressed: () => Get.back(),
                               style: TextButton.styleFrom(
-                                foregroundColor: Colors.red,
+                                foregroundColor: AppColors.primary,
                               ),
-                              child: const Text('Cancel'),
+                              child: Text('cancel'.tr),
                             ),
                             TextButton(
                               onPressed: () async {
                                 final pw = passwordController.text.trim();
                                 if (pw.isEmpty) {
                                   Get.snackbar(
-                                    'Validation',
-                                    'Password is required.',
+                                    'delete_dialog_validation'.tr,
+                                    'delete_dialog_pw_required'.tr,
                                   );
                                   return;
                                 }
@@ -571,9 +569,9 @@ class ProfileScreen extends StatelessWidget {
                                   password: pw,
                                 );
                               },
-                              child: const Text(
-                                'Delete Forever',
-                                style: TextStyle(color: Colors.red),
+                              child: Text(
+                                'delete_dialog_delete_forever'.tr,
+                                style: const TextStyle(color: Colors.red),
                               ),
                             ),
                           ],

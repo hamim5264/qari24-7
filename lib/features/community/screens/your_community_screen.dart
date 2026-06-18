@@ -4,7 +4,6 @@ import '../controllers/community_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../progress/controllers/progress_controller.dart';
 import '../../progress/screens/leaderboard_screen.dart';
-import '../../settings/controllers/settings_controller.dart';
 import '../../subscription/screens/select_plan_screen.dart';
 import '../../subscription/controllers/subscription_controller.dart';
 import 'package:share_plus/share_plus.dart';
@@ -494,7 +493,6 @@ class YourCommunityScreen extends StatelessWidget {
                           return;
                         }
                         _showConfirmationDialog(
-                          context: context,
                           title: 'delete_community'.tr,
                           message: 'confirm_delete'.tr,
                           onConfirm: () {
@@ -527,7 +525,6 @@ class YourCommunityScreen extends StatelessWidget {
                           return;
                         }
                         _showConfirmationDialog(
-                          context: context,
                           title: 'leave_community'.tr,
                           message: 'confirm_leave'.tr,
                           onConfirm: () {
@@ -578,12 +575,11 @@ class YourCommunityScreen extends StatelessWidget {
   }
 
   void _showConfirmationDialog({
-    required BuildContext context,
     required String title,
     required String message,
     required VoidCallback onConfirm,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Get.isDarkMode;
 
     Get.dialog(
       AlertDialog(

@@ -174,7 +174,7 @@ class RecitationController extends GetxController {
 
   @override
   void onClose() {
-    _logSessionProgress();
+    _logSessionProgress(wasReciting: isRecitingMic.value);
     for (var r in activeTapRecognizers) {
       try {
         r.dispose();
@@ -526,6 +526,7 @@ class RecitationController extends GetxController {
                 }
                 mistakeStatusMessage.value =
                     "Discrepancies found! Tap words to listen to correct pronunciation.";
+                prefetchWordAudio(surah.number, activeAyahNum, wordIdx);
               } else {
                 mistakeStatusMessage.value =
                     "Reciting... Word ${wordIdx + 1} of Ayah $activeAyahNum analyzed successfully.";
@@ -540,7 +541,7 @@ class RecitationController extends GetxController {
         onError: (err) {
           isRecitingMic.value = false;
           mistakeDetectionActive.value = false;
-          _logSessionProgress();
+          _logSessionProgress(wasReciting: true);
           Get.snackbar(
             'Recitation Error',
             'Connection to recitation engine failed: $err',
@@ -552,17 +553,17 @@ class RecitationController extends GetxController {
         onDone: () {
           isRecitingMic.value = false;
           mistakeDetectionActive.value = false;
-          _logSessionProgress();
+          _logSessionProgress(wasReciting: true);
         },
       );
     } else {
       mistakeDetectionActive.value = false;
       await _recitationAIService.stopSession();
-      _logSessionProgress();
+      _logSessionProgress(wasReciting: true);
     }
   }
 
-  void _logSessionProgress() {
+  void _logSessionProgress({bool wasReciting = false}) {
     if (_sessionStartTime == null || currentSurah.value == null) return;
 
     final startTime = _sessionStartTime!;
@@ -579,7 +580,7 @@ class RecitationController extends GetxController {
     final startVerse = _sessionStartVerse ?? startingVerse.value;
 
     int endVerse = startVerse;
-    if (isRecitingMic.value) {
+    if (wasReciting) {
       endVerse = currentRecitingAyahNum.value > 0
           ? currentRecitingAyahNum.value
           : startVerse;
@@ -640,6 +641,50 @@ class RecitationController extends GetxController {
     }
   }
 
+  Future<String> _getLocalWordAudioPath(int surahNum, int ayahNum, int wordIndex) async {
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final surahStr = surahNum.toString().padLeft(3, '0');
+    final ayahStr = ayahNum.toString().padLeft(3, '0');
+    final wordStr = (wordIndex + 1).toString().padLeft(3, '0');
+    return '${appDocDir.path}/cache/wbw/${surahStr}_${ayahStr}_$wordStr.mp3';
+  }
+
+  Future<void> prefetchWordAudio(int surahNum, int ayahNum, int wordIndex) async {
+    int finalSurahNum = surahNum;
+    int finalAyahNum = ayahNum;
+    if (ayahNum == 0) {
+      finalSurahNum = 1;
+      finalAyahNum = 1;
+    }
+
+    try {
+      final localPath = await _getLocalWordAudioPath(finalSurahNum, finalAyahNum, wordIndex);
+      final file = File(localPath);
+      if (await file.exists()) {
+        return;
+      }
+
+      if (!await file.parent.exists()) {
+        await file.parent.create(recursive: true);
+      }
+
+      final wIndex = wordIndex + 1;
+      final surahStr = finalSurahNum.toString().padLeft(3, '0');
+      final ayahStr = finalAyahNum.toString().padLeft(3, '0');
+      final wordStr = wIndex.toString().padLeft(3, '0');
+      final wbwUrl = 'https://audio.qurancdn.com/wbw/${surahStr}_${ayahStr}_$wordStr.mp3';
+
+      debugPrint("[RecitationController] Prefetching word pronunciation: $wbwUrl");
+      final client = dio.Dio();
+      client.options.connectTimeout = const Duration(seconds: 5);
+      client.options.receiveTimeout = const Duration(seconds: 5);
+      await client.download(wbwUrl, localPath);
+      debugPrint("[RecitationController] Prefetched word pronunciation to: $localPath");
+    } catch (e) {
+      debugPrint("[RecitationController] Error prefetching word pronunciation: $e");
+    }
+  }
+
   Future<void> playWordAudio(int surahNum, int ayahNum, int wordIndex) async {
     int finalSurahNum = surahNum;
     int finalAyahNum = ayahNum;
@@ -648,21 +693,43 @@ class RecitationController extends GetxController {
       finalAyahNum = 1;
     }
 
-    final wIndex = wordIndex + 1;
-    final surahStr = finalSurahNum.toString().padLeft(3, '0');
-    final ayahStr = finalAyahNum.toString().padLeft(3, '0');
-    final wordStr = wIndex.toString().padLeft(3, '0');
-
-    final wbwUrl =
-        'https://audio.qurancdn.com/wbw/${surahStr}_${ayahStr}_$wordStr.mp3';
-
-    debugPrint("[RecitationController] Playing word pronunciation: $wbwUrl");
     try {
       await _wordAudioPlayer.stop();
-      await _wordAudioPlayer.play(UrlSource(wbwUrl));
+      final localPath = await _getLocalWordAudioPath(finalSurahNum, finalAyahNum, wordIndex);
+      final file = File(localPath);
+
+      if (await file.exists()) {
+        debugPrint("[RecitationController] Playing local word pronunciation: $localPath");
+        await _wordAudioPlayer.play(DeviceFileSource(localPath));
+      } else {
+        final wIndex = wordIndex + 1;
+        final surahStr = finalSurahNum.toString().padLeft(3, '0');
+        final ayahStr = finalAyahNum.toString().padLeft(3, '0');
+        final wordStr = wIndex.toString().padLeft(3, '0');
+        final wbwUrl = 'https://audio.qurancdn.com/wbw/${surahStr}_${ayahStr}_$wordStr.mp3';
+
+        debugPrint("[RecitationController] Streaming word pronunciation fallback: $wbwUrl");
+        await _wordAudioPlayer.play(UrlSource(wbwUrl));
+        // Prefetch for subsequent taps
+        prefetchWordAudio(surahNum, ayahNum, wordIndex);
+      }
     } catch (e) {
       debugPrint("[RecitationController] Error playing word pronunciation: $e");
     }
+  }
+
+  void resetRecitationState() {
+    debugPrint("[RecitationController] resetRecitationState invoked.");
+    _recitationAIService.stopSession();
+    _audioPlayer.stop();
+    _wordAudioPlayer.stop();
+    isPlayingAudio.value = false;
+    isRecitingMic.value = false;
+    currentPlayingAyahIndex.value = -1;
+    mistakeDetectionActive.value = false;
+    detectedMistakeAyahs.clear();
+    wordHighlightStatuses.clear();
+    realTimeMistakeCount.value = 0;
   }
 
   void triggerAIMistakeDetection() {

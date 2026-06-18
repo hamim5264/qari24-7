@@ -290,7 +290,7 @@ class _SeeAllCommunitiesScreenState extends State<SeeAllCommunitiesScreen> {
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Icons.emoji_events,
                                             size: 13,
                                             color: AppColors.secondary,

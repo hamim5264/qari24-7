@@ -74,7 +74,7 @@ class NetworkService extends get_x.GetxService {
                   // Perform refresh request
                   final response = await dio.post(
                     '/auth/refresh/',
-                    data: {'refresh_token': refresh},
+                    data: {'refresh': refresh, 'refresh_token': refresh},
                   );
 
                   if (response.statusCode == 200 ||
