@@ -5,9 +5,11 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 
 class RecitationAIService {
-  final stt.SpeechToText _speech = stt.SpeechToText();
+  static bool _onDeviceSupported = true;
+  stt.SpeechToText _speech = stt.SpeechToText();
   bool _isSessionActive = false;
   bool _isCycling = false;
+  bool _useOnDevice = true;
 
   List<Map<String, dynamic>>? _fullSurahAyahs;
 
@@ -130,6 +132,7 @@ class RecitationAIService {
     _lastEmittedStatuses.clear();
     _totalSpokenWordsConsumed = 0;
     _lastMaxSpkIdx = -1;
+    _useOnDevice = _onDeviceSupported;
 
     _currentAyahListIndex = 0;
     if (_fullSurahAyahs != null) {
@@ -142,6 +145,7 @@ class RecitationAIService {
     }
 
     try {
+      _speech = stt.SpeechToText();
       var status = await Permission.microphone.status;
       if (!status.isGranted) {
         status = await Permission.microphone.request();
@@ -160,6 +164,19 @@ class RecitationAIService {
           debugPrint(
             "[RecitationAIService] Native speech error: ${speechError.errorMsg}",
           );
+
+          if (speechError.errorMsg == "error_language_not_supported" && _useOnDevice) {
+            debugPrint(
+              "[RecitationAIService] On-device Arabic ASR not available. Falling back to online ASR.",
+            );
+            _useOnDevice = false;
+            _onDeviceSupported = false;
+            _speech.stop().then((_) {
+              _startSpeechListener();
+            });
+            return;
+          }
+
           final fatalErrors = {
             "error_audio",
             "error_permission",
@@ -244,6 +261,8 @@ class RecitationAIService {
           localeId: languageCode,
           cancelOnError: false,
           partialResults: true,
+          onDevice: _useOnDevice,
+          listenMode: stt.ListenMode.dictation,
         ),
       );
     } catch (e) {
@@ -430,8 +449,7 @@ class RecitationAIService {
     });
 
     bool shouldAdvance = false;
-    if (_lastEmittedStatuses[curWordsCount - 1] == "correct" &&
-        correctCount >= curWordsCount / 2) {
+    if (_lastEmittedStatuses.containsKey(curWordsCount - 1)) {
       shouldAdvance = true;
     } else if (correctCount >= curWordsCount / 2 && maxAlignedExpIdx >= curWordsCount - 2) {
       final nextAyahListIndex = _currentAyahListIndex + 1;
@@ -528,9 +546,10 @@ class RecitationAIService {
       debugPrint(
         "[RecitationAIService] Surah recitation range fully completed.",
       );
+      final callback = _onDone;
       stopSession();
-      if (_onDone != null) {
-        _onDone!();
+      if (callback != null) {
+        callback();
       }
     }
   }

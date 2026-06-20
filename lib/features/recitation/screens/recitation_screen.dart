@@ -418,9 +418,17 @@ class RecitationScreen extends StatelessWidget {
 
             return Obx(() {
               try {
-                final isHidden = controller.isAyahCurrentlyHidden(
+                var isHidden = controller.isAyahCurrentlyHidden(
                   ayah.numberInSurah,
                 );
+                final isReciting = controller.isRecitingMic.value;
+                final isCurrentOrPastReciting = isReciting && 
+                    (ayah.numberInSurah <= controller.currentRecitingAyahNum.value ||
+                     controller.wordHighlightStatuses.keys.any((k) => k.startsWith("${surah.number}_${ayah.numberInSurah}_")));
+                
+                if (isHidden && isCurrentOrPastReciting) {
+                  isHidden = false;
+                }
                 final isMistake = controller.detectedMistakeAyahs.contains(
                   ayah.numberInSurah,
                 );
@@ -1285,9 +1293,17 @@ class _QuranTextRendererState extends State<QuranTextRenderer> {
 
               for (int i = start; i < end; i++) {
                 final ayah = ayahs[i];
-                final isHidden = controller.isAyahCurrentlyHidden(
+                var isHidden = controller.isAyahCurrentlyHidden(
                   ayah.numberInSurah,
                 );
+                final isReciting = controller.isRecitingMic.value;
+                final isCurrentOrPastReciting = isReciting && 
+                    (ayah.numberInSurah <= controller.currentRecitingAyahNum.value ||
+                     controller.wordHighlightStatuses.keys.any((k) => k.startsWith("${widget.surah.number}_${ayah.numberInSurah}_")));
+                
+                if (isHidden && isCurrentOrPastReciting) {
+                  isHidden = false;
+                }
 
                 if (isHidden) {
                   final tapRecognizer = TapGestureRecognizer()
@@ -1465,7 +1481,8 @@ List<TextSpan> _getTajweedTextSpans(BuildContext context, Ayah ayah) {
         } else {
           color = standardColor;
         }
-      } else if (!controller.showLinesWithAyahNumber.value) {
+      } else if (!controller.showLinesWithAyahNumber.value ||
+                 (controller.isAyahHiddenMode.value && controller.hiddenAyahNumbers.contains(ayah.numberInSurah))) {
         color = Colors.transparent;
         decoration = TextDecoration.underline;
         decorationColor = isMistake
@@ -1511,7 +1528,7 @@ List<TextSpan> _getTajweedTextSpans(BuildContext context, Ayah ayah) {
                       : (status == 'minor_mistake'
                             ? const Color(0x22FBC02D)
                             : const Color(0x22D32F2F)))
-                : (!controller.showLinesWithAyahNumber.value
+                : ((!controller.showLinesWithAyahNumber.value || (controller.isAyahHiddenMode.value && controller.hiddenAyahNumbers.contains(ayah.numberInSurah)))
                       ? Colors.transparent
                       : (isMistake
                             ? Colors.red.shade900.withValues(alpha: 0.2)
